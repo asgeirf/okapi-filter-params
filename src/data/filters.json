@@ -1,0 +1,3708 @@
+[
+  {
+    "meta": {
+      "id": "okf_archive",
+      "name": "Archive Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.archive.ArchiveFilter",
+      "parametersClass": "net.sf.okapi.filters.archive.Parameters",
+      "mimeType": "application/x-archive",
+      "extensions": [
+        ".archive",
+        ".zip",
+        ".jar"
+      ],
+      "description": "Processes ZIP/JAR archives by delegating to sub-filters based on file patterns.",
+      "documentation": "../../../docs/filters/archive.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_archive/schema.json",
+      "title": "Archive Filter Parameters",
+      "description": "Configuration parameters for the Okapi Archive Filter",
+      "type": "object",
+      "properties": {
+        "mimeType": {
+          "type": "string",
+          "default": "application/x-archive",
+          "description": "MIME type of the container"
+        },
+        "fileNames": {
+          "type": "string",
+          "default": "*.tmx,*.xlf,*.xlff",
+          "description": "Comma-delimited glob patterns for files to extract"
+        },
+        "configIds": {
+          "type": "string",
+          "default": "okf_tmx,okf_xliff,okf_xliff",
+          "description": "Comma-delimited filter configuration IDs matching fileNames patterns"
+        },
+        "simplifierRules": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Optional SimplifierRules"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": {
+      "$schema": "../editorHints.schema.json",
+      "groups": [
+        {
+          "id": "extraction",
+          "label": "Extraction Settings",
+          "fields": [
+            "fileNames",
+            "configIds"
+          ]
+        }
+      ],
+      "fields": {
+        "fileNames": {
+          "widget": "tagList",
+          "separator": ",",
+          "allowCustom": true,
+          "placeholder": "*.xml,*.html",
+          "suggestions": [
+            "*.xml",
+            "*.html",
+            "*.htm",
+            "*.xhtml",
+            "*.json",
+            "*.yaml",
+            "*.yml",
+            "*.properties",
+            "*.po",
+            "*.xlf",
+            "*.xliff",
+            "*.sdlxliff",
+            "*.tmx",
+            "*.tbx"
+          ],
+          "description": "Glob patterns for files to extract from archive"
+        },
+        "configIds": {
+          "widget": "tagList",
+          "separator": ",",
+          "suggestions": [
+            "okf_xml",
+            "okf_html",
+            "okf_json",
+            "okf_yaml",
+            "okf_properties",
+            "okf_po",
+            "okf_xliff",
+            "okf_tmx"
+          ],
+          "description": "Filter configuration IDs (must match fileNames order)"
+        },
+        "simplifierRules": {
+          "widget": "codeEditor",
+          "language": "text"
+        }
+      }
+    }
+  },
+  {
+    "meta": {
+      "id": "okf_autoxliff",
+      "name": "AutoXLIFF Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.autoxliff.AutoXLIFFFilter",
+      "parametersClass": "net.sf.okapi.filters.autoxliff.AutoXLIFFParameters",
+      "mimeType": "application/x-xliff+xml",
+      "extensions": [
+        ".xlf",
+        ".xliff"
+      ],
+      "description": "Auto-detects XLIFF version (1.2 or 2.0) and delegates to the appropriate filter.",
+      "documentation": "../../../docs/filters/autoxliff.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_autoxliff/schema.json",
+      "title": "AutoXLIFF Filter Parameters",
+      "description": "Configuration parameters for the Okapi AutoXLIFF Filter",
+      "type": "object",
+      "properties": {
+        "xliff_config": {
+          "type": "string",
+          "default": "okf_xliff",
+          "description": "Configuration ID for XLIFF 1.2 files"
+        },
+        "xliff2_config": {
+          "type": "string",
+          "default": "okf_xliff2",
+          "description": "Configuration ID for XLIFF 2.0 files"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_cascadingfilter",
+      "name": "Cascading Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.cascading.CascadingFilter",
+      "parametersClass": "net.sf.okapi.filters.cascading.FilterParameters",
+      "mimeType": "application/octet-stream",
+      "extensions": [],
+      "description": "Chains multiple filters together for processing complex document formats with embedded content.",
+      "documentation": "../../../docs/filters/cascadingfilter.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_cascadingfilter/schema.json",
+      "title": "Cascading Filter Parameters",
+      "description": "Configuration parameters for the Okapi Cascading Filter",
+      "type": "object",
+      "required": [
+        "primaryConfigId"
+      ],
+      "properties": {
+        "primaryConfigId": {
+          "type": "string",
+          "description": "Configuration ID of the primary filter (required)"
+        },
+        "subFilterConfigIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "List of sub-filter configuration IDs"
+        },
+        "primaryConfig": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Custom primary filter configuration"
+        },
+        "subFilterConfigs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "List of custom sub-filter configurations"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_doxygen",
+      "name": "Doxygen Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.doxygen.DoxygenFilter",
+      "parametersClass": "net.sf.okapi.filters.doxygen.Parameters",
+      "mimeType": "text/u-doxygen-txt",
+      "extensions": [
+        ".h",
+        ".c",
+        ".cpp",
+        ".java",
+        ".py",
+        ".m"
+      ],
+      "description": "Processes source code files with Doxygen-style documentation comments.",
+      "documentation": "../../../docs/filters/doxygen.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_doxygen/schema.json",
+      "title": "Doxygen Filter Parameters",
+      "description": "Configuration parameters for the Okapi Doxygen Filter. Uses YAML-based configuration.",
+      "type": "object",
+      "properties": {
+        "preserve_whitespace": {
+          "type": "boolean",
+          "default": false,
+          "description": "Global whitespace handling"
+        },
+        "custom_commands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "User-defined regex patterns for custom Doxygen commands"
+        }
+      },
+      "additionalProperties": true
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_dtd",
+      "name": "DTD Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.dtd.DTDFilter",
+      "parametersClass": "net.sf.okapi.filters.dtd.Parameters",
+      "mimeType": "application/dtd",
+      "extensions": [
+        ".dtd",
+        ".ent"
+      ],
+      "description": "Processes XML Document Type Definition files and entity files.",
+      "documentation": "../../../docs/filters/dtd.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_dtd/schema.json",
+      "title": "DTD Filter Parameters",
+      "description": "Configuration parameters for the Okapi DTD Filter",
+      "type": "object",
+      "properties": {
+        "useCodeFinder": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable inline code pattern detection"
+        },
+        "codeFinderRules": {
+          "type": "string",
+          "description": "Regex rules for detecting inline codes (default: HTML/XML tags)"
+        },
+        "simplifierRules": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Optional simplifier rules"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_epub",
+      "name": "EPUB Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.epub.EpubFilter",
+      "parametersClass": "net.sf.okapi.filters.archive.Parameters",
+      "mimeType": "application/epub+zip",
+      "extensions": [
+        ".epub"
+      ],
+      "description": "Extracts translatable content from EPUB ebook files.",
+      "documentation": "../../../docs/filters/epub.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_epub/schema.json",
+      "title": "EPUB Filter Parameters",
+      "description": "Configuration parameters for the Okapi EPUB Filter (extends Archive Filter)",
+      "type": "object",
+      "properties": {
+        "mimeType": {
+          "type": "string",
+          "default": "application/epub+zip",
+          "description": "EPUB MIME type"
+        },
+        "fileNames": {
+          "type": "string",
+          "default": "*.xhtml,*.html,*.htm",
+          "description": "File patterns to extract from EPUB archive"
+        },
+        "configIds": {
+          "type": "string",
+          "default": "okf_html,okf_html,okf_html",
+          "description": "Filter configuration IDs for each pattern"
+        },
+        "simplifierRules": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Optional SimplifierRules"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_html",
+      "name": "HTML Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.html.HtmlFilter",
+      "parametersClass": "net.sf.okapi.filters.html.Parameters",
+      "mimeType": "text/html",
+      "extensions": [
+        ".html",
+        ".htm",
+        ".xhtml"
+      ],
+      "description": "Extracts translatable content from HTML and XHTML documents with support for both well-formed and non-well-formed markup.",
+      "documentation": "../../../docs/filters/html.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_html/schema.json",
+      "title": "HTML Filter Parameters",
+      "description": "Configuration parameters for the Okapi HTML Filter",
+      "type": "object",
+      "properties": {
+        "skipEncodingDeclaration": {
+          "type": "boolean",
+          "default": false,
+          "description": "Skip adding encoding meta element in output"
+        },
+        "assumeWellformed": {
+          "type": "boolean",
+          "default": false,
+          "description": "Parser mode: true for XHTML (well-formed), false for loose HTML"
+        },
+        "preserve_whitespace": {
+          "type": "boolean",
+          "default": false,
+          "description": "Global whitespace preservation"
+        },
+        "useCodeFinder": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable inline code detection for embedded codes"
+        },
+        "codeFinderRules": {
+          "type": "string",
+          "description": "Regex rules for inline code detection"
+        },
+        "subfilter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Subfilter for embedded content (e.g., JavaScript strings)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_icml",
+      "name": "ICML Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.icml.ICMLFilter",
+      "parametersClass": "net.sf.okapi.filters.icml.Parameters",
+      "mimeType": "application/vnd.adobe.incopy-icml",
+      "extensions": [
+        ".icml"
+      ],
+      "description": "Extracts translatable content from Adobe InCopy ICML files.",
+      "documentation": "../../../docs/filters/icml.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_icml/schema.json",
+      "title": "ICML Filter Parameters",
+      "description": "Configuration parameters for the Okapi ICML (InCopy) Filter",
+      "type": "object",
+      "properties": {
+        "extractNotes": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract note content"
+        },
+        "simplifyCodes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Simplify inline codes"
+        },
+        "extractMasterSpreads": {
+          "type": "boolean",
+          "default": true,
+          "description": "Extract master spread content"
+        },
+        "skipThreshold": {
+          "type": "integer",
+          "default": 1000,
+          "description": "Skip text units exceeding this character count"
+        },
+        "newTuOnBr": {
+          "type": "boolean",
+          "default": false,
+          "description": "Create new text unit on line break"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_idml",
+      "name": "IDML Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.idml.IDMLFilter",
+      "parametersClass": "net.sf.okapi.filters.idml.Parameters",
+      "mimeType": "application/vnd.adobe.indesign-idml-package",
+      "extensions": [
+        ".idml"
+      ],
+      "description": "Processes Adobe InDesign Markup Language packages.",
+      "documentation": "../../../docs/filters/idml.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_idml/schema.json",
+      "title": "IDML Filter Parameters",
+      "description": "Configuration parameters for the Okapi IDML (InDesign) Filter",
+      "type": "object",
+      "properties": {
+        "maxAttributeSize": {
+          "type": "integer",
+          "default": 4194304,
+          "description": "Maximum XML attribute size in bytes (XXE protection)"
+        },
+        "untagXmlStructures": {
+          "type": "boolean",
+          "default": true,
+          "description": "Remove XML structure tags"
+        },
+        "mergeAdjacentCodes": {
+          "type": "boolean",
+          "default": false,
+          "description": "Merge consecutive inline codes"
+        },
+        "extractNotes": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract footnotes and endnotes"
+        },
+        "extractMasterSpreads": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include master page spreads"
+        },
+        "extractHiddenLayers": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract content from hidden layers"
+        },
+        "extractHiddenPasteboardItems": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract pasteboard items"
+        },
+        "skipDiscretionaryHyphens": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ignore soft hyphens (U+00AD)"
+        },
+        "extractBreaksInline": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract page/column breaks inline"
+        },
+        "extractHyperlinkTextSourcesInline": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract hyperlink text inline"
+        },
+        "extractCustomTextVariables": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract custom text variable definitions"
+        },
+        "extractIndexTopics": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract index entry topics"
+        },
+        "extractExternalHyperlinks": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract external URL destinations"
+        },
+        "extractMathZones": {
+          "type": "boolean",
+          "default": true,
+          "description": "Extract mathematical content"
+        },
+        "ignoreCharacterKerning": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ignore kerning (with min/max thresholds)"
+        },
+        "ignoreCharacterTracking": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ignore tracking adjustments"
+        },
+        "ignoreCharacterLeading": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ignore line spacing"
+        },
+        "ignoreCharacterBaselineShift": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ignore baseline shift"
+        },
+        "specialCharacterPattern": {
+          "type": "string",
+          "description": "Pattern for special characters"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_itshtml5",
+      "name": "ITS HTML5 Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.its.html5.HTML5Filter",
+      "parametersClass": "net.sf.okapi.filters.its.Parameters",
+      "mimeType": "text/html",
+      "extensions": [
+        ".html",
+        ".htm"
+      ],
+      "description": "Processes HTML5 documents with ITS 2.0 data categories for localization control.",
+      "documentation": "../../../docs/filters/its.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_itshtml5/schema.json",
+      "title": "ITS HTML5 Filter Parameters",
+      "description": "Configuration parameters for the Okapi ITS HTML5 Filter",
+      "type": "object",
+      "properties": {
+        "useCodeFinder": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable inline code detection"
+        },
+        "codeFinderRules": {
+          "type": "string",
+          "description": "Regex patterns for inline code detection"
+        },
+        "lineBreakAsCode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Treat line breaks as inline codes"
+        },
+        "escapeQuotes": {
+          "type": "boolean",
+          "default": false,
+          "description": "Escape quotes in output"
+        },
+        "extractIfOnlyCodes": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract segments containing only codes"
+        },
+        "mapAnnotations": {
+          "type": "boolean",
+          "default": false,
+          "description": "Map ITS annotations to Okapi annotations"
+        },
+        "inlineCdata": {
+          "type": "boolean",
+          "default": false,
+          "description": "Treat CDATA as inline content"
+        },
+        "extractUntranslatable": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract non-translatable segments"
+        },
+        "simplifierRules": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Simplifier grammar rules"
+        },
+        "protectEntityRef": {
+          "type": "boolean",
+          "default": false,
+          "description": "Protect XML entity references"
+        },
+        "omitXMLDeclaration": {
+          "type": "boolean",
+          "default": false,
+          "description": "Omit XML declaration in output"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_json",
+      "name": "JSON Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.json.JSONFilter",
+      "parametersClass": "net.sf.okapi.filters.json.Parameters",
+      "mimeType": "application/json",
+      "extensions": [
+        ".json"
+      ],
+      "description": "Extracts translatable strings from JSON files with support for key path patterns, metadata extraction, and subfiltering.",
+      "documentation": "../../../docs/filters/json.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_json/schema.json",
+      "title": "JSON Filter Parameters",
+      "description": "Configuration parameters for the Okapi JSON Filter",
+      "type": "object",
+      "properties": {
+        "extractIsolatedStrings": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract string values without keys (array elements)"
+        },
+        "extractAllPairs": {
+          "type": "boolean",
+          "default": true,
+          "description": "Extract all key-value pairs (unless exceptions/rules apply)"
+        },
+        "exceptions": {
+          "type": "string",
+          "default": "",
+          "description": "DEPRECATED: Regex for paths to exclude from extraction",
+          "deprecated": true
+        },
+        "useKeyAsName": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use JSON key as TextUnit name"
+        },
+        "useFullKeyPath": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use full path (/key1/key2) vs immediate key only"
+        },
+        "useLeadingSlashOnKeyPath": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include leading / in key paths"
+        },
+        "escapeForwardSlashes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Preserve \\/ escape sequences in output"
+        },
+        "useIdStack": {
+          "type": "boolean",
+          "default": false,
+          "description": "Build hierarchical ID paths"
+        },
+        "useCodeFinder": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable inline code detection"
+        },
+        "codeFinderRules": {
+          "type": "string",
+          "description": "XML-encoded inline code finder rules"
+        },
+        "subfilter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Subfilter name for processing values (e.g., okf_html)"
+        },
+        "extractionRules": {
+          "type": "string",
+          "default": "",
+          "description": "Regex for paths to extract (takes priority over extractAllPairs)"
+        },
+        "noteRules": {
+          "type": "string",
+          "default": "",
+          "description": "Regex for values to use as XLIFF notes"
+        },
+        "idRules": {
+          "type": "string",
+          "default": "",
+          "description": "Regex for values to use as TextUnit IDs"
+        },
+        "genericMetaRules": {
+          "type": "string",
+          "default": "",
+          "description": "Regex for metadata key-value pairs"
+        },
+        "subfilterRules": {
+          "type": "string",
+          "default": "",
+          "description": "Regex for paths to process with subfilter"
+        },
+        "maxwidthRules": {
+          "type": "string",
+          "default": "",
+          "description": "Regex for values to use as max width constraint"
+        },
+        "maxwidthSizeUnit": {
+          "type": "string",
+          "default": "",
+          "description": "Size unit for max width (e.g., char)"
+        },
+        "simplifierRules": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Simplification rules for post-processing"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": {
+      "$schema": "../editorHints.schema.json",
+      "groups": [
+        {
+          "id": "extraction",
+          "label": "Extraction Settings",
+          "fields": [
+            "extractIsolatedStrings",
+            "extractAllPairs",
+            "extractionRules"
+          ]
+        },
+        {
+          "id": "keys",
+          "label": "Key Handling",
+          "fields": [
+            "useKeyAsName",
+            "useFullKeyPath",
+            "useLeadingSlashOnKeyPath",
+            "useIdStack"
+          ]
+        },
+        {
+          "id": "rules",
+          "label": "Rules & Patterns",
+          "fields": [
+            "noteRules",
+            "idRules",
+            "genericMetaRules",
+            "subfilterRules",
+            "maxwidthRules"
+          ]
+        },
+        {
+          "id": "inlineCodes",
+          "label": "Inline Code Detection",
+          "fields": [
+            "useCodeFinder",
+            "codeFinderRules"
+          ]
+        },
+        {
+          "id": "subfiltering",
+          "label": "Sub-filtering",
+          "fields": [
+            "subfilter",
+            "subfilterRules"
+          ]
+        }
+      ],
+      "fields": {
+        "extractionRules": {
+          "widget": "regexBuilder",
+          "description": "Regex patterns to match JSON paths for extraction",
+          "placeholder": "/messages/.+",
+          "testSamples": [
+            "/messages/greeting",
+            "/config/debug",
+            "/items/0/name"
+          ]
+        },
+        "noteRules": {
+          "widget": "regexBuilder",
+          "placeholder": "/.*_note$/"
+        },
+        "idRules": {
+          "widget": "regexBuilder",
+          "placeholder": "/.*_id$/"
+        },
+        "genericMetaRules": {
+          "widget": "regexBuilder"
+        },
+        "subfilterRules": {
+          "widget": "regexBuilder",
+          "placeholder": "/.*_html$/"
+        },
+        "maxwidthRules": {
+          "widget": "regexBuilder"
+        },
+        "codeFinderRules": {
+          "widget": "codeFinderRules",
+          "presets": {
+            "printf": "%(([-0+#]?)[-0+#]?)((\\d\\$)?)(([\\d\\*]*)(\\.[\\d\\*]*)?)[dioxXucsfeEgGpn]",
+            "escapes": "(\\\\r\\\\n)|\\\\[abfnrtv]",
+            "braces": "\\\\{\\\\d[^\\\\\\\\]*?\\\\}"
+          }
+        },
+        "subfilter": {
+          "widget": "filterSelector",
+          "allowNull": true,
+          "suggestions": [
+            "okf_html",
+            "okf_markdown",
+            "okf_xml"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "meta": {
+      "id": "okf_markdown",
+      "name": "Markdown Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.markdown.MarkdownFilter",
+      "parametersClass": "net.sf.okapi.filters.markdown.Parameters",
+      "mimeType": "text/markdown",
+      "extensions": [
+        ".md",
+        ".markdown"
+      ],
+      "description": "Extracts translatable content from Markdown documents with support for CommonMark, GitHub Flavored Markdown, YAML front matter, and embedded HTML.",
+      "documentation": "../../../docs/filters/markdown.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_markdown/schema.json",
+      "title": "Markdown Filter Parameters",
+      "description": "Configuration parameters for the Okapi Markdown Filter",
+      "type": "object",
+      "properties": {
+        "useCodeFinder": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable inline code pattern finder"
+        },
+        "translateUrls": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract URL content for translation"
+        },
+        "urlToTranslatePattern": {
+          "type": "string",
+          "default": ".+",
+          "description": "Regex to filter which URLs to translate"
+        },
+        "translateFencedCodeBlocks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Extract fenced code blocks (```)"
+        },
+        "translateIndentedCodeBlocks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Extract indented code blocks"
+        },
+        "translateInlineCodeBlocks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Extract backtick inline code"
+        },
+        "translateHeaderMetadata": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract YAML front matter"
+        },
+        "translateImageAltText": {
+          "type": "boolean",
+          "default": true,
+          "description": "Extract image alt text"
+        },
+        "htmlSubfilter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Custom HTML subfilter config"
+        },
+        "yamlSubfilter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Custom YAML subfilter config for front matter"
+        },
+        "htmlEntitiesToEscape": {
+          "type": "string",
+          "default": "",
+          "description": "HTML entities to escape in output"
+        },
+        "unescapeBackslashCharacters": {
+          "type": "boolean",
+          "default": false,
+          "description": "Convert escaped characters to raw form"
+        },
+        "charactersToEscape": {
+          "type": "string",
+          "default": "*_`{}[]<>()#+\\-.!|",
+          "description": "Characters needing backslash escape in output"
+        },
+        "generateHeaderAnchors": {
+          "type": "boolean",
+          "default": false,
+          "description": "Auto-generate heading anchors"
+        },
+        "parseMdx": {
+          "type": "boolean",
+          "default": false,
+          "description": "Parse MDX syntax"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_messageformat",
+      "name": "MessageFormat Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.messageformat.MessageFormatFilter",
+      "parametersClass": "net.sf.okapi.filters.messageformat.Parameters",
+      "mimeType": "application/json",
+      "extensions": [
+        ".json",
+        ".yaml",
+        ".yml"
+      ],
+      "description": "Handles ICU MessageFormat syntax in JSON and YAML files with support for pluralization, gender selection, and complex linguistic patterns.",
+      "documentation": "../../../docs/filters/messageformat.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_messageformat/schema.json",
+      "title": "MessageFormat Filter Parameters",
+      "description": "Configuration parameters for the Okapi MessageFormat Filter",
+      "type": "object",
+      "properties": {
+        "addPluralForms": {
+          "type": "boolean",
+          "default": false,
+          "description": "Add all plural forms for target locale"
+        },
+        "normalize": {
+          "type": "boolean",
+          "default": false,
+          "description": "Normalize MessageFormat patterns"
+        },
+        "prettyPrint": {
+          "type": "boolean",
+          "default": false,
+          "description": "Pretty print output"
+        },
+        "useCodeFinder": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use code finder for inline codes"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_mif",
+      "name": "MIF Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.mif.MIFFilter",
+      "parametersClass": "net.sf.okapi.filters.mif.Parameters",
+      "mimeType": "application/x-mif",
+      "extensions": [
+        ".mif"
+      ],
+      "description": "Processes Adobe FrameMaker Interchange Format files.",
+      "documentation": "../../../docs/filters/mif.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_mif/schema.json",
+      "title": "MIF Filter Parameters",
+      "description": "Configuration parameters for the Okapi MIF (FrameMaker) Filter",
+      "type": "object",
+      "properties": {
+        "extractBodyPages": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include content from body pages"
+        },
+        "extractMasterPages": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include master page content"
+        },
+        "extractReferencePages": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include reference page content"
+        },
+        "extractHiddenPages": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include hidden page content"
+        },
+        "extractVariables": {
+          "type": "boolean",
+          "default": true,
+          "description": "Extract MIF variables as text units"
+        },
+        "extractIndexMarkers": {
+          "type": "boolean",
+          "default": true,
+          "description": "Extract index markers (x-index type)"
+        },
+        "extractLinks": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract hyperlinks as separate text units"
+        },
+        "extractPgfNumFormatsInline": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract paragraph number formats inline"
+        },
+        "extractReferenceFormats": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract reference formats inline"
+        },
+        "extractHardReturnsAsText": {
+          "type": "boolean",
+          "default": true,
+          "description": "Process hard returns (\\n) as text"
+        },
+        "useCodeFinder": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable inline code detection"
+        },
+        "codeFinderRules": {
+          "type": "string",
+          "description": "Regex patterns for code detection"
+        },
+        "simplifierRules": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Optional text unit simplification rules"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_mosestext",
+      "name": "MosesText Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.mosestext.MosesTextFilter",
+      "parametersClass": "net.sf.okapi.common.filters.DefaultParameters",
+      "mimeType": "text/x-mosestext",
+      "extensions": [
+        ".txt"
+      ],
+      "description": "Processes Moses Statistical Machine Translation text files with one line per segment and optional segment markers.",
+      "documentation": "../../../docs/filters/mosestext.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_mosestext/schema.json",
+      "title": "MosesText Filter Parameters",
+      "description": "Configuration parameters for the Okapi MosesText Filter. This filter uses DefaultParameters with no filter-level parameters.",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_multiparsers",
+      "name": "MultiParsers Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.multiparsers.MultiParsersFilter",
+      "parametersClass": "net.sf.okapi.filters.multiparsers.Parameters",
+      "mimeType": "text/csv",
+      "extensions": [
+        ".csv"
+      ],
+      "description": "Processes files with multiple embedded formats, particularly CSV with embedded content that needs sub-filtering.",
+      "documentation": "../../../docs/filters/multiparsers.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_multiparsers/schema.json",
+      "title": "MultiParsers Filter Parameters",
+      "description": "Configuration parameters for the Okapi MultiParsers Filter",
+      "type": "object",
+      "properties": {
+        "csvNoExtractCols": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Comma-separated column indexes to skip"
+        },
+        "csvFormatCols": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Column format specs (e.g., '1:okf_markdown,3:okf_html')"
+        },
+        "csvStartingRow": {
+          "type": "integer",
+          "default": 1,
+          "minimum": 1,
+          "description": "Row to start extraction from"
+        },
+        "csvAutoDetectColumnTypes": {
+          "type": "boolean",
+          "default": false,
+          "description": "Auto-detect column content types"
+        },
+        "csvAutoDetectColumnTypesRow": {
+          "type": "integer",
+          "default": 2,
+          "description": "Row used for content type detection"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_openoffice",
+      "name": "OpenOffice Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.openoffice.OpenOfficeFilter",
+      "parametersClass": "net.sf.okapi.filters.openoffice.Parameters",
+      "mimeType": "application/vnd.oasis.opendocument.text",
+      "extensions": [
+        ".odt",
+        ".ods",
+        ".odp",
+        ".odg",
+        ".ott",
+        ".ots",
+        ".otp",
+        ".otg"
+      ],
+      "description": "Processes OpenDocument Format files (ODT, ODS, ODP, ODG) used by LibreOffice and Apache OpenOffice.",
+      "documentation": "../../../docs/filters/openoffice.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_openoffice/schema.json",
+      "title": "OpenOffice Filter Parameters",
+      "description": "Configuration parameters for the Okapi OpenOffice (ODF) Filter",
+      "type": "object",
+      "properties": {
+        "extractNotes": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract footnotes and endnotes (text:note)"
+        },
+        "extractReferences": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract bookmark references and annotations"
+        },
+        "extractMetadata": {
+          "type": "boolean",
+          "default": true,
+          "description": "Extract document metadata (title, description, subject, keywords)"
+        },
+        "encodeCharacterEntityReferenceGlyphs": {
+          "type": "boolean",
+          "default": true,
+          "description": "Encode special character glyphs"
+        },
+        "simplifierRules": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Custom SimplifierRules for element handling"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_openxml",
+      "name": "OpenXML Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.openxml.OpenXMLFilter",
+      "parametersClass": "net.sf.okapi.filters.openxml.ConditionalParameters",
+      "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "extensions": [
+        ".docx",
+        ".xlsx",
+        ".pptx",
+        ".dotx",
+        ".xltx",
+        ".potx",
+        ".vsdx"
+      ],
+      "description": "Extracts translatable content from Microsoft Office Open XML documents (DOCX, XLSX, PPTX).",
+      "documentation": "../../../docs/filters/openxml.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_openxml/schema.json",
+      "title": "OpenXML Filter Parameters",
+      "description": "Configuration parameters for the Okapi OpenXML Filter (Word, Excel, PowerPoint)",
+      "type": "object",
+      "properties": {
+        "bPreferenceTranslateDocProperties": {
+          "type": "boolean",
+          "default": true,
+          "description": "Translate document properties"
+        },
+        "translateWordHeadersFooters": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include headers and footers (Word)"
+        },
+        "translateWordNumberingLevelText": {
+          "type": "boolean",
+          "default": false,
+          "description": "Translate numbering text (Word)"
+        },
+        "bPreferenceTranslateWordHidden": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include hidden text (Word)"
+        },
+        "translateWordGraphicName": {
+          "type": "boolean",
+          "default": true,
+          "description": "Translate graphic names (Word)"
+        },
+        "translateWordGraphicDescription": {
+          "type": "boolean",
+          "default": false,
+          "description": "Translate graphic descriptions (Word)"
+        },
+        "bInExcludeMode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Exclude specified styles mode"
+        },
+        "allowWordStyleOptimisation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow style optimization (Word)"
+        },
+        "bPreferenceTranslateExcelSheetNames": {
+          "type": "boolean",
+          "default": false,
+          "description": "Translate sheet names (Excel)"
+        },
+        "bPreferenceTranslateExcelHidden": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include hidden cells (Excel)"
+        },
+        "translateExcelCellsCopied": {
+          "type": "boolean",
+          "default": true,
+          "description": "Extract copied cells (Excel)"
+        },
+        "translateExcelDiagramData": {
+          "type": "boolean",
+          "default": false,
+          "description": "Translate diagram data (Excel)"
+        },
+        "bPreferenceTranslateExcelDrawings": {
+          "type": "boolean",
+          "default": false,
+          "description": "Translate drawings (Excel)"
+        },
+        "preserveExcelStylesInTargetColumns": {
+          "type": "boolean",
+          "default": false,
+          "description": "Preserve target styles (Excel)"
+        },
+        "extractExcelSourceAndTargetColumnsJoined": {
+          "type": "boolean",
+          "default": false,
+          "description": "Join source/target columns (Excel)"
+        },
+        "translatePowerpointDocProperties": {
+          "type": "boolean",
+          "default": true,
+          "description": "Translate doc properties (PowerPoint)"
+        },
+        "bPreferenceTranslatePowerpointNotes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include notes (PowerPoint)"
+        },
+        "bPreferenceTranslatePowerpointMasters": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include masters/layouts (PowerPoint)"
+        },
+        "bPreferenceIgnorePlaceholdersInPowerpointMasters": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ignore master placeholders (PowerPoint)"
+        },
+        "bPreferenceTranslatePowerpointComments": {
+          "type": "boolean",
+          "default": true,
+          "description": "Translate comments (PowerPoint)"
+        },
+        "translatePowerpointDiagramData": {
+          "type": "boolean",
+          "default": true,
+          "description": "Translate diagrams (PowerPoint)"
+        },
+        "translatePowerpointCharts": {
+          "type": "boolean",
+          "default": true,
+          "description": "Translate charts (PowerPoint)"
+        },
+        "bPreferenceTranslatePowerpointHidden": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include hidden slides (PowerPoint)"
+        },
+        "bPreferenceTranslateComments": {
+          "type": "boolean",
+          "default": true,
+          "description": "Translate comments (all formats)"
+        },
+        "bPreferenceAutomaticallyAcceptRevisions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Accept tracked changes"
+        },
+        "bPreferenceAggressiveCleanup": {
+          "type": "boolean",
+          "default": false,
+          "description": "Aggressive markup cleanup"
+        },
+        "bPreferenceAddTabAsCharacter": {
+          "type": "boolean",
+          "default": false,
+          "description": "Replace <w:tab/> with \\t"
+        },
+        "bPreferenceAddLineSeparatorAsCharacter": {
+          "type": "boolean",
+          "default": false,
+          "description": "Replace breaks with characters"
+        },
+        "bExtractExternalHyperlinks": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract external hyperlinks"
+        },
+        "bPreferenceAllowEmptyTargets": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow empty targets"
+        },
+        "subfilter": {
+          "type": "string",
+          "default": "",
+          "description": "Subfilter configuration"
+        },
+        "useCodeFinder": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use inline code finder"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": {
+      "$schema": "../editorHints.schema.json",
+      "groups": [
+        {
+          "id": "word",
+          "label": "Microsoft Word Options",
+          "collapsed": true,
+          "fields": [
+            "translateWordHeadersFooters",
+            "translateWordNumberingLevelText",
+            "bPreferenceTranslateWordHidden",
+            "bPreferenceTranslateDocumentProperties",
+            "translateWordGraphicName",
+            "translateWordGraphicDescription",
+            "translateWordInstructions",
+            "translateWordTrackChanges",
+            "replaceNewlineWithWhitespaceInWordParagraph"
+          ]
+        },
+        {
+          "id": "excel",
+          "label": "Microsoft Excel Options",
+          "collapsed": true,
+          "fields": [
+            "bPreferenceTranslateExcelSheetNames",
+            "bPreferenceTranslateExcelHidden",
+            "translateExcelCellsCopied",
+            "excludeExcelColumns",
+            "bPreferenceTranslateExcelExcludeColors",
+            "bPreferenceTranslateExcelDiagramData",
+            "bPreferenceExtractDocumentText",
+            "bExcludeConditionalFormattingText"
+          ]
+        },
+        {
+          "id": "powerpoint",
+          "label": "Microsoft PowerPoint Options",
+          "collapsed": true,
+          "fields": [
+            "bPreferenceTranslatePowerpointNotes",
+            "bPreferenceTranslatePowerpointMasters"
+          ]
+        },
+        {
+          "id": "general",
+          "label": "General Options",
+          "fields": [
+            "translateComments",
+            "bPreferenceAggressiveCleanup",
+            "addTabAsCharacter"
+          ]
+        },
+        {
+          "id": "inlineCodes",
+          "label": "Inline Code Detection",
+          "fields": [
+            "useCodeFinder",
+            "codeFinderRules"
+          ]
+        }
+      ],
+      "fields": {
+        "excludeExcelColumns": {
+          "widget": "tagList",
+          "separator": ",",
+          "placeholder": "A,B,C",
+          "description": "Excel column letters to exclude"
+        },
+        "codeFinderRules": {
+          "widget": "codeFinderRules"
+        },
+        "bPreferenceTranslateExcelExcludeColors": {
+          "widget": "tagList",
+          "separator": ",",
+          "placeholder": "FF0000,00FF00",
+          "description": "Hex color codes to exclude"
+        }
+      }
+    }
+  },
+  {
+    "meta": {
+      "id": "okf_pdf",
+      "name": "PDF Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.pdf.PdfFilter",
+      "parametersClass": "net.sf.okapi.filters.pdf.Parameters",
+      "mimeType": "application/pdf",
+      "extensions": [
+        ".pdf"
+      ],
+      "description": "Extracts text content from PDF documents. Note that PDF extraction is inherently lossy and round-trip is not supported.",
+      "documentation": "../../../docs/filters/pdf.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_pdf/schema.json",
+      "title": "PDF Filter Parameters",
+      "description": "Configuration parameters for the Okapi PDF Filter",
+      "type": "object",
+      "properties": {
+        "useCodeFinder": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use code finder for inline patterns"
+        },
+        "indentThreshold": {
+          "type": "string",
+          "default": "2.0",
+          "description": "Threshold for detecting indentation"
+        },
+        "spacingTolerance": {
+          "type": "string",
+          "default": "0.5",
+          "description": "Tolerance for space detection"
+        },
+        "lineSeparator": {
+          "type": "string",
+          "default": "\n",
+          "description": "Line separator in output"
+        },
+        "paragraphSeparator": {
+          "type": "string",
+          "default": "\n",
+          "description": "Paragraph separator in output"
+        },
+        "preserveWhitespace": {
+          "type": "boolean",
+          "default": false,
+          "description": "Preserve original whitespace"
+        },
+        "sortByPosition": {
+          "type": "boolean",
+          "default": false,
+          "description": "Sort text by position on page"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_pensieve",
+      "name": "Pensieve Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.pensieve.PensieveFilter",
+      "parametersClass": "net.sf.okapi.common.filters.DefaultParameters",
+      "mimeType": "application/x-pensieve-tm",
+      "extensions": [
+        ".pentm"
+      ],
+      "description": "Reads and writes Pensieve Translation Memory files (Okapi's built-in Lucene-based TM engine).",
+      "documentation": "../../../docs/filters/pensieve.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_pensieve/schema.json",
+      "title": "Pensieve Filter Parameters",
+      "description": "Configuration parameters for the Okapi Pensieve Filter. This filter has no configurable parameters.",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_phpcontent",
+      "name": "PHP Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.php.PHPContentFilter",
+      "parametersClass": "net.sf.okapi.filters.php.Parameters",
+      "mimeType": "text/x-php",
+      "extensions": [
+        ".php"
+      ],
+      "description": "Extracts localizable strings from PHP source code including single-quoted, double-quoted, heredoc, and nowdoc strings.",
+      "documentation": "../../../docs/filters/php.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_phpcontent/schema.json",
+      "title": "PHP Filter Parameters",
+      "description": "Configuration parameters for the Okapi PHP Filter",
+      "type": "object",
+      "properties": {
+        "useDirectives": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable localization directives (//_skip, /*_btext*/, etc.)"
+        },
+        "extractOutsideDirectives": {
+          "type": "boolean",
+          "default": true,
+          "description": "Extract strings outside directive scopes"
+        },
+        "useCodeFinder": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable inline code detection"
+        },
+        "codeFinderRules": {
+          "type": "string",
+          "description": "Regex rules for detecting inline codes (HTML tags, escapes, variables)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_plaintext",
+      "name": "PlainText Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.plaintext.PlainTextFilter",
+      "parametersClass": "net.sf.okapi.filters.plaintext.base.Parameters",
+      "mimeType": "text/plain",
+      "extensions": [
+        ".txt"
+      ],
+      "description": "Processes plain text files with multiple extraction strategies including line-based, paragraph-based, and regex-based extraction.",
+      "documentation": "../../../docs/filters/plaintext.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_plaintext/schema.json",
+      "title": "PlainText Filter Parameters",
+      "description": "Configuration parameters for the Okapi PlainText Filter",
+      "type": "object",
+      "properties": {
+        "unescapeSource": {
+          "type": "boolean",
+          "default": true,
+          "description": "Convert \\uHHHH Unicode escapes to characters"
+        },
+        "trimLeading": {
+          "type": "boolean",
+          "default": false,
+          "description": "Remove leading whitespace from lines"
+        },
+        "trimTrailing": {
+          "type": "boolean",
+          "default": false,
+          "description": "Remove trailing whitespace from lines"
+        },
+        "preserveWS": {
+          "type": "boolean",
+          "default": true,
+          "description": "Preserve whitespace in text units"
+        },
+        "useCodeFinder": {
+          "type": "boolean",
+          "default": false,
+          "description": "Detect inline codes (printf placeholders, escapes)"
+        },
+        "codeFinderRules": {
+          "type": "string",
+          "description": "Regex rules for inline code detection"
+        },
+        "wrapMode": {
+          "type": "string",
+          "enum": [
+            "NONE",
+            "ATCOLUMN",
+            "ATBREAK"
+          ],
+          "default": "NONE",
+          "description": "Text wrapping behavior for output"
+        },
+        "subfilter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Nested filter for text processing"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_po",
+      "name": "PO Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.po.POFilter",
+      "parametersClass": "net.sf.okapi.filters.po.Parameters",
+      "mimeType": "text/x-gettext-po",
+      "extensions": [
+        ".po",
+        ".pot"
+      ],
+      "description": "Extracts translatable content from GNU gettext PO and POT files with support for plurals, fuzzy markers, and domains.",
+      "documentation": "../../../docs/filters/po.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_po/schema.json",
+      "title": "PO Filter Parameters",
+      "description": "Configuration parameters for the Okapi PO Filter",
+      "type": "object",
+      "properties": {
+        "bilingualMode": {
+          "type": "boolean",
+          "default": true,
+          "description": "msgid=source, msgstr=target (false=monolingual mode)"
+        },
+        "protectApproved": {
+          "type": "boolean",
+          "default": false,
+          "description": "Mark approved translations as non-translatable"
+        },
+        "useCodeFinder": {
+          "type": "boolean",
+          "default": true,
+          "description": "Detect inline codes (printf, Java-style placeholders)"
+        },
+        "codeFinderRules": {
+          "type": "string",
+          "description": "Regex rules for inline code detection"
+        },
+        "makeID": {
+          "type": "boolean",
+          "default": true,
+          "description": "Generate IDs from domain + msgctxt + msgid"
+        },
+        "allowEmptyOutputTarget": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow empty translation in output"
+        },
+        "includeMsgContextInNote": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include msgctxt in notes"
+        },
+        "wrapContent": {
+          "type": "boolean",
+          "default": true,
+          "description": "Wrap long lines in output"
+        },
+        "outputGeneric": {
+          "type": "boolean",
+          "default": false,
+          "description": "Output generic format"
+        },
+        "subfilter": {
+          "type": "string",
+          "default": "",
+          "description": "Subfilter for nested content"
+        },
+        "simplifierRules": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Simplifier rules for post-processing"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_properties",
+      "name": "Properties Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.properties.PropertiesFilter",
+      "parametersClass": "net.sf.okapi.filters.properties.Parameters",
+      "mimeType": "text/x-java-properties",
+      "extensions": [
+        ".properties"
+      ],
+      "description": "Extracts translatable strings from Java .properties files with support for key conditions, localization directives, and subfiltering.",
+      "documentation": "../../../docs/filters/properties.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_properties/schema.json",
+      "title": "Properties Filter Parameters",
+      "description": "Configuration parameters for the Okapi Properties Filter",
+      "type": "object",
+      "properties": {
+        "useKeyCondition": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable regex key filtering"
+        },
+        "keyCondition": {
+          "type": "string",
+          "default": ".*text.*",
+          "description": "Regex pattern for key matching"
+        },
+        "extractOnlyMatchingKey": {
+          "type": "boolean",
+          "default": true,
+          "description": "If true: extract matching keys; false: exclude matching keys"
+        },
+        "convertLFandTab": {
+          "type": "boolean",
+          "default": true,
+          "description": "Convert \\n and \\t to actual characters"
+        },
+        "useJavaEscapes": {
+          "type": "boolean",
+          "default": false,
+          "description": "Process Java escapes (\\:, \\#, etc.)"
+        },
+        "escapeExtendedChars": {
+          "type": "boolean",
+          "default": true,
+          "description": "Output non-ASCII as \\uHHHH"
+        },
+        "extraComments": {
+          "type": "boolean",
+          "default": false,
+          "description": "Recognize ; and // as comments"
+        },
+        "commentsAreNotes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Attach comments as notes to TextUnits"
+        },
+        "idLikeResname": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use key as ID (else numeric IDs)"
+        },
+        "useCodeFinder": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable inline code detection"
+        },
+        "codeFinderRules": {
+          "type": "string",
+          "description": "Regex rules for inline code detection (printf, placeholders, HTML tags)"
+        },
+        "subfilter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Subfilter name for processing values (e.g., okf_html)"
+        },
+        "useLD": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable localization directives (#_skip, #_text, etc.)"
+        },
+        "localizeOutside": {
+          "type": "boolean",
+          "default": true,
+          "description": "Extract outside directive scopes"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_rainbowkit",
+      "name": "RainbowKit Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.rainbowkit.RainbowKitFilter",
+      "parametersClass": "net.sf.okapi.filters.rainbowkit.Parameters",
+      "mimeType": "application/x-rainbowkit",
+      "extensions": [
+        ".rkm",
+        ".rkp"
+      ],
+      "description": "Processes Okapi Rainbow translation kit packages containing manifest files and document collections.",
+      "documentation": "../../../docs/filters/rainbowkit.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_rainbowkit/schema.json",
+      "title": "RainbowKit Filter Parameters",
+      "description": "Configuration parameters for the Okapi RainbowKit Filter",
+      "type": "object",
+      "properties": {
+        "openManifest": {
+          "type": "boolean",
+          "default": true,
+          "description": "Open manifest dialog before processing"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_regex",
+      "name": "Regex Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.regex.RegexFilter",
+      "parametersClass": "net.sf.okapi.filters.regex.Parameters",
+      "mimeType": "text/plain",
+      "extensions": [],
+      "description": "Extracts translatable content from text files using configurable regular expression patterns.",
+      "documentation": "../../../docs/filters/regex.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_regex/schema.json",
+      "title": "Regex Filter Parameters",
+      "description": "Configuration parameters for the Okapi Regex Filter",
+      "type": "object",
+      "properties": {
+        "startString": {
+          "type": "string",
+          "default": "\"",
+          "description": "Delimiter marking string start"
+        },
+        "endString": {
+          "type": "string",
+          "default": "\"",
+          "description": "Delimiter marking string end"
+        },
+        "mimeType": {
+          "type": "string",
+          "default": "text/plain",
+          "description": "MIME type of extracted content"
+        },
+        "subFilter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Optional sub-filter for extracted content"
+        },
+        "useBSlashEscape": {
+          "type": "boolean",
+          "default": false,
+          "description": "Interpret \\\\, \\\", \\' as escape sequences"
+        },
+        "useDoubleCharEscape": {
+          "type": "boolean",
+          "default": false,
+          "description": "Treat doubled delimiters as escaped (\"\" = \")"
+        },
+        "removeBSlashEscape": {
+          "type": "boolean",
+          "default": false,
+          "description": "Convert \\n, \\r, \\t to actual whitespace"
+        },
+        "extractOuterStrings": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include strings outside matched patterns"
+        },
+        "oneLevelGroups": {
+          "type": "boolean",
+          "default": false,
+          "description": "Auto-close open groups when new group opens"
+        },
+        "regexOptions": {
+          "type": "integer",
+          "default": 48,
+          "description": "Java Pattern flags (default: DOTALL | MULTILINE)"
+        },
+        "rules": {
+          "type": "array",
+          "description": "List of extraction rules",
+          "items": {
+            "type": "object",
+            "properties": {
+              "expr": {
+                "type": "string",
+                "description": "Regex pattern with capture groups"
+              },
+              "ruleType": {
+                "type": "integer",
+                "enum": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5
+                ],
+                "description": "Rule type: 0=STRING, 1=CONTENT, 2=COMMENT, 3=NOTRANS, 4=OPENGROUP, 5=CLOSEGROUP"
+              },
+              "sourceGroup": {
+                "type": "integer",
+                "description": "Capture group index for translatable content"
+              },
+              "targetGroup": {
+                "type": "integer",
+                "description": "Optional capture group for target (bilingual files)"
+              },
+              "nameGroup": {
+                "type": "integer",
+                "description": "Capture group to use as text unit name"
+              },
+              "noteGroup": {
+                "type": "integer",
+                "description": "Capture group containing notes/metadata"
+              },
+              "preserveWS": {
+                "type": "boolean",
+                "description": "Keep original whitespace"
+              },
+              "useCodeFinder": {
+                "type": "boolean",
+                "description": "Apply inline code detection rules"
+              },
+              "collapseNewline": {
+                "type": "boolean",
+                "description": "Convert multi-line to space-separated"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_rtf",
+      "name": "RTF Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.rtf.RTFFilter",
+      "parametersClass": "net.sf.okapi.common.filters.DefaultParameters",
+      "mimeType": "application/rtf",
+      "extensions": [
+        ".rtf"
+      ],
+      "description": "Processes Rich Text Format documents with support for multilingual content and various character encodings.",
+      "documentation": "../../../docs/filters/rtf.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_rtf/schema.json",
+      "title": "RTF Filter Parameters",
+      "description": "Configuration parameters for the Okapi RTF Filter. Uses DefaultParameters with minimal configuration.",
+      "type": "object",
+      "properties": {
+        "stripWSBeforeTextStart": {
+          "type": "boolean",
+          "default": true,
+          "description": "Skip whitespace before actual content"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_sdlpackage",
+      "name": "SDL Package Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.sdlpackage.SdlPackageFilter",
+      "parametersClass": "net.sf.okapi.filters.archive.Parameters",
+      "mimeType": "application/x-sdl-package",
+      "extensions": [
+        ".sdlppx"
+      ],
+      "description": "Extracts translatable content from SDL Trados package files containing SDLXLIFF files and project metadata.",
+      "documentation": "../../../docs/filters/sdlpackage.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_sdlpackage/schema.json",
+      "title": "SDL Package Filter Parameters",
+      "description": "Configuration parameters for the Okapi SDL Package Filter (extends Archive Filter)",
+      "type": "object",
+      "properties": {
+        "mimeType": {
+          "type": "string",
+          "description": "Package MIME type"
+        },
+        "fileNames": {
+          "type": "string",
+          "default": "*.sdlxliff",
+          "description": "Files to extract from package"
+        },
+        "configIds": {
+          "type": "string",
+          "default": "okf_xliff-sdl",
+          "description": "Filter configuration for SDLXLIFF files"
+        },
+        "simplifierRules": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Optional SimplifierRules"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_table",
+      "name": "Table Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.table.TableFilter",
+      "parametersClass": "net.sf.okapi.filters.table.base.Parameters",
+      "mimeType": "text/csv",
+      "extensions": [
+        ".csv",
+        ".tsv",
+        ".txt"
+      ],
+      "description": "Extracts translatable content from tabular data files including CSV, TSV, and fixed-width column formats.",
+      "documentation": "../../../docs/filters/table.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_table/schema.json",
+      "title": "Table Filter Parameters",
+      "description": "Configuration parameters for the Okapi Table Filter (CSV, TSV, fixed-width)",
+      "type": "object",
+      "properties": {
+        "columnNamesLineNum": {
+          "type": "integer",
+          "default": 0,
+          "description": "Line with column names (1-based, 0 = no header)"
+        },
+        "valuesStartLineNum": {
+          "type": "integer",
+          "default": 1,
+          "description": "Line where data begins"
+        },
+        "detectColumnsMode": {
+          "type": "integer",
+          "enum": [
+            0,
+            1,
+            2
+          ],
+          "default": 0,
+          "description": "Column detection: 0=variable, 1=from header, 2=fixed"
+        },
+        "numColumns": {
+          "type": "integer",
+          "default": 1,
+          "description": "Fixed column count (when detectColumnsMode=2)"
+        },
+        "sendHeaderMode": {
+          "type": "integer",
+          "enum": [
+            0,
+            1,
+            2
+          ],
+          "default": 0,
+          "description": "Header handling: 0=skip, 1=names only, 2=all"
+        },
+        "trimMode": {
+          "type": "integer",
+          "default": 1,
+          "description": "Whitespace trimming mode"
+        },
+        "sendColumnsMode": {
+          "type": "integer",
+          "enum": [
+            0,
+            1,
+            2
+          ],
+          "default": 1,
+          "description": "Columns to extract: 0=skip all, 1=listed, 2=all"
+        },
+        "sourceColumns": {
+          "type": "string",
+          "default": "1",
+          "description": "Source column indices (comma-separated)"
+        },
+        "targetColumns": {
+          "type": "string",
+          "default": "2",
+          "description": "Target column indices (comma-separated)"
+        },
+        "targetLanguages": {
+          "type": "string",
+          "default": "",
+          "description": "Target languages for target columns"
+        },
+        "commentColumns": {
+          "type": "string",
+          "default": "",
+          "description": "Comment column indices"
+        },
+        "sourceIdColumns": {
+          "type": "string",
+          "default": "",
+          "description": "ID column indices"
+        },
+        "recordIdColumn": {
+          "type": "integer",
+          "default": 0,
+          "description": "Record ID column"
+        },
+        "targetSourceRefs": {
+          "type": "string",
+          "default": "1",
+          "description": "Target-to-source mapping"
+        },
+        "commentSourceRefs": {
+          "type": "string",
+          "default": "",
+          "description": "Comment-to-source mapping"
+        },
+        "exposeCommentsAsMetadata": {
+          "type": "boolean",
+          "default": false,
+          "description": "Expose comments as metadata"
+        },
+        "fieldDelimiter": {
+          "type": "string",
+          "default": ",",
+          "description": "Field separator (CSV)"
+        },
+        "textQualifier": {
+          "type": "string",
+          "default": "\"",
+          "description": "Quote character (CSV)"
+        },
+        "removeQualifiers": {
+          "type": "boolean",
+          "default": true,
+          "description": "Remove quotes from text"
+        },
+        "escapingMode": {
+          "type": "integer",
+          "enum": [
+            1,
+            2
+          ],
+          "default": 1,
+          "description": "Escaping mode: 1=duplication, 2=backslash"
+        },
+        "addQualifiers": {
+          "type": "boolean",
+          "default": false,
+          "description": "Add quotes back in output"
+        },
+        "columnStartPositions": {
+          "type": "string",
+          "default": "",
+          "description": "Start positions for fixed-width (1-based)"
+        },
+        "columnEndPositions": {
+          "type": "string",
+          "default": "",
+          "description": "End positions for fixed-width"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": {
+      "$schema": "../editorHints.schema.json",
+      "groups": [
+        {
+          "id": "columns",
+          "label": "Column Configuration",
+          "fields": [
+            "sourceColumns",
+            "targetColumns",
+            "commentColumns",
+            "sourceIdColumns",
+            "recordIdColumn"
+          ]
+        },
+        {
+          "id": "structure",
+          "label": "Table Structure",
+          "fields": [
+            "columnNamesLineNum",
+            "valuesStartLineNum",
+            "detectColumnsMode",
+            "numColumns"
+          ]
+        },
+        {
+          "id": "csv",
+          "label": "CSV Format",
+          "fields": [
+            "fieldDelimiter",
+            "textQualifier",
+            "removeQualifiers",
+            "escapingMode",
+            "addQualifiers"
+          ]
+        },
+        {
+          "id": "fixedWidth",
+          "label": "Fixed Width Format",
+          "fields": [
+            "columnStartPositions",
+            "columnEndPositions"
+          ]
+        },
+        {
+          "id": "output",
+          "label": "Output Options",
+          "fields": [
+            "sendHeaderMode",
+            "sendColumnsMode",
+            "trimMode"
+          ]
+        }
+      ],
+      "fields": {
+        "sourceColumns": {
+          "widget": "columnIndexList",
+          "separator": ",",
+          "oneBased": true,
+          "placeholder": "1,2,3"
+        },
+        "targetColumns": {
+          "widget": "columnIndexList",
+          "separator": ",",
+          "oneBased": true,
+          "placeholder": "4,5"
+        },
+        "commentColumns": {
+          "widget": "columnIndexList",
+          "separator": ","
+        },
+        "sourceIdColumns": {
+          "widget": "columnIndexList",
+          "separator": ","
+        },
+        "columnStartPositions": {
+          "widget": "columnIndexList",
+          "separator": ",",
+          "oneBased": true,
+          "placeholder": "1,20,40"
+        },
+        "columnEndPositions": {
+          "widget": "columnIndexList",
+          "separator": ",",
+          "placeholder": "19,39,60"
+        },
+        "targetSourceRefs": {
+          "widget": "columnIndexList",
+          "separator": ","
+        },
+        "commentSourceRefs": {
+          "widget": "columnIndexList",
+          "separator": ","
+        },
+        "detectColumnsMode": {
+          "widget": "enumRadio",
+          "options": [
+            {
+              "value": 0,
+              "label": "Variable",
+              "description": "Detect columns dynamically per row"
+            },
+            {
+              "value": 1,
+              "label": "From Header",
+              "description": "Use header row to determine columns"
+            },
+            {
+              "value": 2,
+              "label": "Fixed Count",
+              "description": "Use specified number of columns"
+            }
+          ]
+        },
+        "sendHeaderMode": {
+          "widget": "enumRadio",
+          "options": [
+            {
+              "value": 0,
+              "label": "Skip",
+              "description": "Don't process header row"
+            },
+            {
+              "value": 1,
+              "label": "Names Only",
+              "description": "Extract column names only"
+            },
+            {
+              "value": 2,
+              "label": "All Content",
+              "description": "Extract all header content"
+            }
+          ]
+        },
+        "sendColumnsMode": {
+          "widget": "enumRadio",
+          "options": [
+            {
+              "value": 0,
+              "label": "Skip All",
+              "description": "Don't extract any columns"
+            },
+            {
+              "value": 1,
+              "label": "Listed Only",
+              "description": "Extract only specified columns"
+            },
+            {
+              "value": 2,
+              "label": "All Columns",
+              "description": "Extract all columns"
+            }
+          ]
+        },
+        "escapingMode": {
+          "widget": "enumRadio",
+          "options": [
+            {
+              "value": 1,
+              "label": "Duplication",
+              "description": "Escape by doubling (e.g., \"\" for quote)"
+            },
+            {
+              "value": 2,
+              "label": "Backslash",
+              "description": "Escape with backslash (e.g., \\\")"
+            }
+          ]
+        },
+        "fieldDelimiter": {
+          "widget": "delimiterPicker",
+          "common": [
+            {
+              "value": ",",
+              "label": "Comma"
+            },
+            {
+              "value": "\t",
+              "label": "Tab"
+            },
+            {
+              "value": ";",
+              "label": "Semicolon"
+            },
+            {
+              "value": "|",
+              "label": "Pipe"
+            }
+          ]
+        },
+        "textQualifier": {
+          "widget": "delimiterPicker",
+          "common": [
+            {
+              "value": "\"",
+              "label": "Double Quote"
+            },
+            {
+              "value": "'",
+              "label": "Single Quote"
+            },
+            {
+              "value": "",
+              "label": "None"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "meta": {
+      "id": "okf_tex",
+      "name": "TeX Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.tex.TEXFilter",
+      "parametersClass": "net.sf.okapi.common.filters.DefaultParameters",
+      "mimeType": "text/x-tex",
+      "extensions": [
+        ".tex",
+        ".latex"
+      ],
+      "description": "Extracts translatable content from LaTeX documents while preserving LaTeX commands and environments as inline codes or skeleton.",
+      "documentation": "../../../docs/filters/tex.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_tex/schema.json",
+      "title": "TeX Filter Parameters",
+      "description": "Configuration parameters for the Okapi TeX Filter. Uses DefaultParameters with no configurable options.",
+      "type": "object",
+      "properties": {},
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_tmx",
+      "name": "TMX Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.tmx.TmxFilter",
+      "parametersClass": "net.sf.okapi.filters.tmx.Parameters",
+      "mimeType": "application/x-tmx+xml",
+      "extensions": [
+        ".tmx"
+      ],
+      "description": "Extracts translation units from TMX (Translation Memory eXchange) files with support for multiple target languages and inline codes.",
+      "documentation": "../../../docs/filters/tmx.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_tmx/schema.json",
+      "title": "TMX Filter Parameters",
+      "description": "Configuration parameters for the Okapi TMX Filter",
+      "type": "object",
+      "properties": {
+        "processAllTargets": {
+          "type": "boolean",
+          "default": true,
+          "description": "Read all target languages from the TMX file"
+        },
+        "consolidateDpSkeleton": {
+          "type": "boolean",
+          "default": true,
+          "description": "Group document parts skeleton together"
+        },
+        "exitOnInvalid": {
+          "type": "boolean",
+          "default": false,
+          "description": "Exit on invalid translation units (otherwise skip them)"
+        },
+        "segType": {
+          "type": "integer",
+          "enum": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "default": 2,
+          "description": "Segmentation type: 0=sentence, 1=paragraph, 2=default to sentence if unspecified, 3=default to paragraph if unspecified"
+        },
+        "propValueSep": {
+          "type": "string",
+          "default": ", ",
+          "description": "Delimiter for duplicate property values"
+        },
+        "escapeGT": {
+          "type": "boolean",
+          "default": false,
+          "description": "Escape greater-than (>) characters in output"
+        },
+        "simplifierRules": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Code simplification rules"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_transifex",
+      "name": "Transifex Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.transifex.TransifexFilter",
+      "parametersClass": "net.sf.okapi.filters.transifex.Parameters",
+      "mimeType": "application/x-transifex",
+      "extensions": [
+        ".txf"
+      ],
+      "description": "Processes Transifex-specific translation file formats for integration with the Transifex translation management platform.",
+      "documentation": "../../../docs/filters/transifex.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_transifex/schema.json",
+      "title": "Transifex Filter Parameters",
+      "description": "Configuration parameters for the Okapi Transifex Filter",
+      "type": "object",
+      "properties": {
+        "openProject": {
+          "type": "boolean",
+          "default": true,
+          "description": "Open as project file"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_transtable",
+      "name": "TransTable Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.transtable.TransTableFilter",
+      "parametersClass": "net.sf.okapi.filters.transtable.Parameters",
+      "mimeType": "text/x-transtable",
+      "extensions": [
+        ".txt"
+      ],
+      "description": "Processes tab-separated translation table files with support for segmentation and inline codes.",
+      "documentation": "../../../docs/filters/transtable.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_transtable/schema.json",
+      "title": "TransTable Filter Parameters",
+      "description": "Configuration parameters for the Okapi TransTable Filter",
+      "type": "object",
+      "properties": {
+        "allowSegments": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow segmentation (one row per segment)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_ts",
+      "name": "TS Filter (Qt Linguist)",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.ts.TsFilter",
+      "parametersClass": "net.sf.okapi.filters.ts.Parameters",
+      "mimeType": "application/x-ts",
+      "extensions": [
+        ".ts"
+      ],
+      "description": "Processes Qt Linguist translation source files with support for plural forms, translation status, and inline code detection.",
+      "documentation": "../../../docs/filters/ts.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_ts/schema.json",
+      "title": "TS Filter Parameters",
+      "description": "Configuration parameters for the Okapi Qt Linguist TS Filter",
+      "type": "object",
+      "properties": {
+        "escapeGT": {
+          "type": "boolean",
+          "default": false,
+          "description": "Escape greater-than (>) characters in output"
+        },
+        "decodeByteValues": {
+          "type": "boolean",
+          "default": false,
+          "description": "Convert <byte value=\"XX\"/> to raw characters"
+        },
+        "useCodeFinder": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable inline code detection"
+        },
+        "codeFinderRules": {
+          "type": "string",
+          "default": "#v1\ncount.i=3\nrule0=%(([-0+#]?)[-0+#]?)((\\d\\$)?)(([\\d\\*]*)(\\.[\\d\\*]*)?)[dioxXucsfeEgGpn]\nrule1=(\\\\r\\\\n)|\\\\a|\\\\b|\\\\f|\\\\n|\\\\r|\\\\t|\\\\v\nrule2=\\\\{\\\\d[^\\\\\\\\]*?\\\\}",
+          "description": "Regex patterns for inline code detection"
+        },
+        "simplifierRules": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Simplifier rules for text processing"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_ttml",
+      "name": "TTML Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.ttml.TTMLFilter",
+      "parametersClass": "net.sf.okapi.filters.ttml.TTMLParameters",
+      "mimeType": "application/ttml+xml",
+      "extensions": [
+        ".ttml",
+        ".dfxp"
+      ],
+      "description": "Processes TTML (Timed Text Markup Language) subtitle files.",
+      "documentation": "../../../docs/filters/subtitles.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_ttml/schema.json",
+      "title": "TTML Filter Parameters",
+      "description": "Configuration parameters for the Okapi TTML Filter",
+      "type": "object",
+      "properties": {
+        "timeFormat": {
+          "type": "string",
+          "default": "HH:mm:ss.SSS",
+          "description": "Time format pattern"
+        },
+        "maxCharsPerLine": {
+          "type": "integer",
+          "default": 0,
+          "description": "Maximum characters per line (0 = unlimited)"
+        },
+        "maxLinesPerCaption": {
+          "type": "integer",
+          "default": 0,
+          "description": "Maximum lines per caption (0 = unlimited)"
+        },
+        "cjkCharsPerLine": {
+          "type": "integer",
+          "default": 0,
+          "description": "CJK-specific character limit"
+        },
+        "keepTimecodes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Preserve original timecode formatting"
+        },
+        "splitWords": {
+          "type": "boolean",
+          "default": false,
+          "description": "Split words exceeding character limits"
+        },
+        "writeCharAnnotations": {
+          "type": "boolean",
+          "default": false,
+          "description": "Export character constraints as XLIFF annotations"
+        },
+        "mergeCaptions": {
+          "type": "boolean",
+          "default": false,
+          "description": "Merge consecutive captions by sentence"
+        },
+        "useCodeFinder": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable inline code detection"
+        },
+        "escapeBrMode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-remove and re-add line breaks for cleaner extraction"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_ttx",
+      "name": "TTX Filter (Trados TagEditor)",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.ttx.TTXFilter",
+      "parametersClass": "net.sf.okapi.filters.ttx.Parameters",
+      "mimeType": "application/x-ttx",
+      "extensions": [
+        ".ttx"
+      ],
+      "description": "Processes Trados TagEditor XML files with support for segmentation, alternative translations, and TM match percentages.",
+      "documentation": "../../../docs/filters/ttx.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_ttx/schema.json",
+      "title": "TTX Filter Parameters",
+      "description": "Configuration parameters for the Okapi Trados TagEditor TTX Filter",
+      "type": "object",
+      "properties": {
+        "segmentMode": {
+          "type": "integer",
+          "enum": [
+            0,
+            1,
+            2
+          ],
+          "default": 0,
+          "description": "Extraction mode: 0=auto-detect, 1=existing segments only, 2=all content"
+        },
+        "escapeGT": {
+          "type": "boolean",
+          "default": false,
+          "description": "Escape greater-than (>) characters in output"
+        },
+        "simplifierRules": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Custom text simplification rules"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_txml",
+      "name": "TXML Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.txml.TXMLFilter",
+      "parametersClass": "net.sf.okapi.filters.txml.Parameters",
+      "mimeType": "application/x-txml",
+      "extensions": [
+        ".txml"
+      ],
+      "description": "Processes WorldServer TXML (Translation XML) files, which are XML-based bilingual files used by SDL WorldServer.",
+      "documentation": "../../../docs/filters/txml.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_txml/schema.json",
+      "title": "TXML Filter Parameters",
+      "description": "Configuration parameters for the Okapi WorldServer TXML Filter",
+      "type": "object",
+      "properties": {
+        "allowEmptyOutputTarget": {
+          "type": "boolean",
+          "default": true,
+          "description": "Allow empty target segments in output"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_vignette",
+      "name": "Vignette Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.vignette.VignetteFilter",
+      "parametersClass": "net.sf.okapi.filters.vignette.Parameters",
+      "mimeType": "application/x-vignette",
+      "extensions": [
+        ".xml"
+      ],
+      "description": "Processes Vignette (OpenText) Content Management System export files, extracting translatable content from XML exports with embedded HTML.",
+      "documentation": "../../../docs/filters/vignette.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_vignette/schema.json",
+      "title": "Vignette Filter Parameters",
+      "description": "Configuration parameters for the Okapi Vignette CMS Filter",
+      "type": "object",
+      "properties": {
+        "partsNames": {
+          "type": "string",
+          "default": "SMCCONTENT-TITLE, SMCCONTENT-ABSTRACT, SMCCONTENT-BODY",
+          "description": "Comma-separated attribute element names to extract"
+        },
+        "partsConfigurations": {
+          "type": "string",
+          "default": "default, okf_html, okf_html",
+          "description": "Filter configurations per part (comma-separated)"
+        },
+        "sourceId": {
+          "type": "string",
+          "default": "SOURCE_ID",
+          "description": "Attribute name for source ID"
+        },
+        "localeId": {
+          "type": "string",
+          "default": "LOCALE_ID",
+          "description": "Attribute name for locale ID"
+        },
+        "monolingual": {
+          "type": "boolean",
+          "default": false,
+          "description": "Process as monolingual content"
+        },
+        "useCDATA": {
+          "type": "boolean",
+          "default": true,
+          "description": "Content uses CDATA sections"
+        },
+        "simplifierRules": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Optional simplifier rules"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_vtt",
+      "name": "VTT Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.vtt.VTTFilter",
+      "parametersClass": "net.sf.okapi.filters.vtt.VTTParameters",
+      "mimeType": "application/vnd.mozilla.webvtt+xml",
+      "extensions": [
+        ".vtt",
+        ".srt"
+      ],
+      "description": "Processes VTT (WebVTT) and SRT subtitle files.",
+      "documentation": "../../../docs/filters/subtitles.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_vtt/schema.json",
+      "title": "VTT Filter Parameters",
+      "description": "Configuration parameters for the Okapi VTT (WebVTT) Filter",
+      "type": "object",
+      "properties": {
+        "timeFormat": {
+          "type": "string",
+          "default": "HH:mm:ss.SSS",
+          "description": "Time format pattern"
+        },
+        "maxCharsPerLine": {
+          "type": "integer",
+          "default": 0,
+          "description": "Maximum characters per line (0 = unlimited)"
+        },
+        "maxLinesPerCaption": {
+          "type": "integer",
+          "default": 0,
+          "description": "Maximum lines per caption (0 = unlimited)"
+        },
+        "cjkCharsPerLine": {
+          "type": "integer",
+          "default": 0,
+          "description": "CJK-specific character limit"
+        },
+        "keepTimecodes": {
+          "type": "boolean",
+          "default": true,
+          "description": "Preserve original timecode formatting"
+        },
+        "splitWords": {
+          "type": "boolean",
+          "default": false,
+          "description": "Split words exceeding character limits"
+        },
+        "writeCharAnnotations": {
+          "type": "boolean",
+          "default": false,
+          "description": "Export character constraints as XLIFF annotations"
+        },
+        "mergeCaptions": {
+          "type": "boolean",
+          "default": false,
+          "description": "Merge consecutive captions by sentence"
+        },
+        "useCodeFinder": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable inline code detection"
+        },
+        "cueSettings": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Replace existing cue settings with text"
+        },
+        "discardCues": {
+          "type": "boolean",
+          "default": false,
+          "description": "Discard existing cue settings entirely"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_wiki",
+      "name": "Wiki Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.wiki.WikiFilter",
+      "parametersClass": "net.sf.okapi.filters.wiki.Parameters",
+      "mimeType": "text/x-wiki-txt",
+      "extensions": [
+        ".txt",
+        ".wiki"
+      ],
+      "description": "Processes DokuWiki/MediaWiki-style markup files, extracting translatable content while preserving formatting and wiki syntax.",
+      "documentation": "../../../docs/filters/wiki.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_wiki/schema.json",
+      "title": "Wiki Filter Parameters",
+      "description": "Configuration parameters for the Okapi Wiki Filter (DokuWiki/MediaWiki)",
+      "type": "object",
+      "properties": {
+        "preserve_whitespace": {
+          "type": "boolean",
+          "default": false,
+          "description": "Preserve whitespace in extraction"
+        },
+        "simplifierRules": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Custom simplifier rules"
+        },
+        "custom_codes": {
+          "type": "array",
+          "default": [],
+          "description": "User-defined regex patterns for inline codes",
+          "items": {
+            "type": "object",
+            "properties": {
+              "pattern": {
+                "type": "string",
+                "description": "One-off placeholder code pattern"
+              },
+              "start_pattern": {
+                "type": "string",
+                "description": "Opening pattern for paired codes"
+              },
+              "end_pattern": {
+                "type": "string",
+                "description": "Closing pattern for paired codes"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_wsxzpackage",
+      "name": "WSXZ Package Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.wsxzpackage.WsxzPackageFilter",
+      "parametersClass": "net.sf.okapi.filters.archive.Parameters",
+      "mimeType": "application/x-wsxzpackage",
+      "extensions": [
+        ".wsxz"
+      ],
+      "description": "Extracts translatable content from WorldServer WSXZ package files, which are ZIP archives containing SDLXLIFF files.",
+      "documentation": "../../../docs/filters/wsxzpackage.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_wsxzpackage/schema.json",
+      "title": "WSXZ Package Filter Parameters",
+      "description": "Configuration parameters for the Okapi WorldServer WSXZ Package Filter (extends Archive Filter)",
+      "type": "object",
+      "properties": {
+        "mimeType": {
+          "type": "string",
+          "default": "application/x-wsxzpackage",
+          "description": "Package MIME type"
+        },
+        "fileNames": {
+          "type": "string",
+          "default": "*.sdlxliff",
+          "description": "Files to extract from package (glob pattern)"
+        },
+        "configIds": {
+          "type": "string",
+          "default": "okf_xliff-sdl",
+          "description": "Filter configuration for SDLXLIFF files"
+        },
+        "simplifierRules": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Optional simplifier rules"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_xini",
+      "name": "XINI Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.xini.XINIFilter",
+      "parametersClass": "net.sf.okapi.filters.xini.Parameters",
+      "mimeType": "application/x-xini",
+      "extensions": [
+        ".xini"
+      ],
+      "description": "Processes XINI (XML-based INI) translation files with support for segmentation and inline codes.",
+      "documentation": "../../../docs/filters/xini.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_xini/schema.json",
+      "title": "XINI Filter Parameters",
+      "description": "Configuration parameters for the Okapi XINI (XML-based INI) Filter",
+      "type": "object",
+      "properties": {
+        "USE_OKAPI_SEGMENTATION": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use Okapi's segmentation in output"
+        },
+        "simplifierRules": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Optional code simplifier rules"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_xliff",
+      "name": "XLIFF Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.xliff.XLIFFFilter",
+      "parametersClass": "net.sf.okapi.filters.xliff.Parameters",
+      "mimeType": "application/x-xliff+xml",
+      "extensions": [
+        ".xlf",
+        ".xliff"
+      ],
+      "description": "Processes XLIFF 1.2 translation interchange files with support for SDL XLIFF, IWS XLIFF, and various segmentation modes.",
+      "documentation": "../../../docs/filters/xliff.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_xliff/schema.json",
+      "title": "XLIFF 1.2 Filter Parameters",
+      "description": "Configuration parameters for the Okapi XLIFF 1.2 Filter",
+      "type": "object",
+      "properties": {
+        "useCustomParser": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use Woodstox XML parser"
+        },
+        "factoryClass": {
+          "type": "string",
+          "default": "com.ctc.wstx.stax.WstxInputFactory",
+          "description": "XML parser factory class"
+        },
+        "fallbackToID": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use ID when display name unavailable"
+        },
+        "escapeGT": {
+          "type": "boolean",
+          "default": false,
+          "description": "Escape > in output"
+        },
+        "addTargetLanguage": {
+          "type": "boolean",
+          "default": true,
+          "description": "Add target-language attribute"
+        },
+        "overrideTargetLanguage": {
+          "type": "boolean",
+          "default": false,
+          "description": "Override input target-language"
+        },
+        "allowEmptyTargets": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow empty target elements"
+        },
+        "alwaysAddTargets": {
+          "type": "boolean",
+          "default": false,
+          "description": "Add targets for monolingual files"
+        },
+        "outputSegmentationType": {
+          "type": "integer",
+          "enum": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "default": 0,
+          "description": "Output segmentation mode: 0=ORIGINAL, 1=SEGMENTED, 2=NOTSEGMENTED, 3=ASNEEDED"
+        },
+        "ignoreInputSegmentation": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ignore input segmentation"
+        },
+        "preserveSpaceByDefault": {
+          "type": "boolean",
+          "default": false,
+          "description": "Preserve whitespace by default"
+        },
+        "alwaysUseSegSource": {
+          "type": "boolean",
+          "default": false,
+          "description": "Always use segmented source"
+        },
+        "targetStateMode": {
+          "type": "integer",
+          "enum": [
+            0,
+            1,
+            2
+          ],
+          "default": 0,
+          "description": "Target state handling: 0=IGNORE, 1=EXTRACT, 2=DONOTEXTRACT"
+        },
+        "targetStateValue": {
+          "type": "string",
+          "default": "needs-translation",
+          "description": "Default target state value"
+        },
+        "useTranslationTargetState": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use state from target, not source"
+        },
+        "includeExtensions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include XLIFF extensions"
+        },
+        "includeIts": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include ITS metadata"
+        },
+        "addAltTrans": {
+          "type": "boolean",
+          "default": false,
+          "description": "Add alternative translations"
+        },
+        "addAltTransGMode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use g-mode for alt-trans"
+        },
+        "editAltTrans": {
+          "type": "boolean",
+          "default": false,
+          "description": "Edit alternative translations"
+        },
+        "useSdlXliffWriter": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use SDL XLIFF writer"
+        },
+        "sdlSegLockedValue": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "SDL segment locked value"
+        },
+        "sdlSegConfValue": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "SDL segment confidence value"
+        },
+        "sdlSegOriginValue": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "SDL segment origin value"
+        },
+        "useIwsXliffWriter": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use IWS (WorldServer) writer"
+        },
+        "iwsBlockFinished": {
+          "type": "boolean",
+          "default": true,
+          "description": "Mark IWS blocks as finished"
+        },
+        "iwsTransStatusValue": {
+          "type": "string",
+          "default": "finished",
+          "description": "IWS translation status value"
+        },
+        "iwsTransTypeValue": {
+          "type": "string",
+          "default": "manual_translation",
+          "description": "IWS translation type value"
+        },
+        "useCodeFinder": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use inline code finder"
+        },
+        "inlineCdata": {
+          "type": "boolean",
+          "default": false,
+          "description": "Inline CDATA sections"
+        },
+        "cdataSubfilter": {
+          "type": "string",
+          "default": "",
+          "description": "Subfilter for CDATA content"
+        },
+        "pcdataSubfilter": {
+          "type": "string",
+          "default": "",
+          "description": "Subfilter for PCDATA content"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_xliff2",
+      "name": "XLIFF 2.0 Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.xliff2.XLIFF2Filter",
+      "parametersClass": "net.sf.okapi.filters.xliff2.Parameters",
+      "mimeType": "application/xliff+xml",
+      "extensions": [
+        ".xlf",
+        ".xliff",
+        ".xlf2",
+        ".xliff2"
+      ],
+      "description": "Processes XLIFF 2.0 translation interchange files with explicit segment handling and metadata support.",
+      "documentation": "../../../docs/filters/xliff2.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_xliff2/schema.json",
+      "title": "XLIFF 2.0 Filter Parameters",
+      "description": "Configuration parameters for the Okapi XLIFF 2.0 Filter",
+      "type": "object",
+      "properties": {
+        "maxValidation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable maximum XLIFF schema validation"
+        },
+        "useCodeFinder": {
+          "type": "boolean",
+          "default": false,
+          "description": "Apply inline code finder rules"
+        },
+        "codeFinderRules": {
+          "type": "string",
+          "description": "Regex rules for inline code detection (default: HTML tags)"
+        },
+        "simplifyTags": {
+          "type": "boolean",
+          "default": false,
+          "description": "Simplify tag representation"
+        },
+        "needsSegmentation": {
+          "type": "boolean",
+          "default": false,
+          "description": "Send DEEPEN_SEGMENTATION event"
+        },
+        "forceUniqueIds": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ensure unique tag IDs"
+        },
+        "ignoreTagTypeMatch": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow tag type mismatches"
+        },
+        "discardInvalidTargets": {
+          "type": "boolean",
+          "default": false,
+          "description": "Discard invalid targets"
+        },
+        "writeOriginalData": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include <originalData> in output"
+        },
+        "subfilter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Subfilter for embedded content"
+        },
+        "subfilterOverwriteTarget": {
+          "type": "boolean",
+          "default": false,
+          "description": "Subfilter overwrites final targets"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_xmlstream",
+      "name": "XML Stream Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.xmlstream.XmlStreamFilter",
+      "parametersClass": "net.sf.okapi.filters.xmlstream.Parameters",
+      "mimeType": "text/xml",
+      "extensions": [
+        ".xml"
+      ],
+      "description": "A high-performance filter for processing large XML documents with configurable extraction rules defined in YAML.",
+      "documentation": "../../../docs/filters/xmlstream.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_xmlstream/schema.json",
+      "title": "XML Stream Filter Parameters",
+      "description": "Configuration parameters for the Okapi XML Stream Filter. This filter uses YAML-based configuration for element and attribute rules.",
+      "type": "object",
+      "properties": {
+        "assumeWellformed": {
+          "type": "boolean",
+          "default": true,
+          "description": "Parser mode: true for well-formed XML, false for loose parsing"
+        },
+        "preserve_whitespace": {
+          "type": "boolean",
+          "default": false,
+          "description": "Global whitespace preservation"
+        },
+        "global_pcdata_subfilter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Global subfilter for PCDATA content (e.g., okf_html)"
+        },
+        "global_cdata_subfilter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Global subfilter for CDATA sections"
+        },
+        "useCodeFinder": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable inline code detection"
+        },
+        "codeFinderRules": {
+          "type": "string",
+          "description": "Regex rules for inline code detection"
+        },
+        "elements": {
+          "type": "object",
+          "description": "Element-specific extraction rules",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "ruleTypes": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "TEXTUNIT",
+                    "INLINE",
+                    "GROUP",
+                    "EXCLUDE",
+                    "INCLUDE",
+                    "ATTRIBUTES_ONLY",
+                    "PRESERVE_WHITESPACE"
+                  ]
+                },
+                "description": "Rule types for this element"
+              },
+              "translatableAttributes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Attributes to extract as translatable"
+              },
+              "conditions": {
+                "type": "array",
+                "description": "Conditional extraction rules [attr, operator, value]"
+              }
+            }
+          }
+        },
+        "attributes": {
+          "type": "object",
+          "description": "Global attribute rules",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "ruleTypes": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "ATTRIBUTE_WRITABLE",
+                    "ATTRIBUTE_TRANS",
+                    "ATTRIBUTE_ID",
+                    "ATTRIBUTE_PRESERVE_WHITESPACE"
+                  ]
+                },
+                "description": "Rule types for this attribute"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "editorHints": null
+  },
+  {
+    "meta": {
+      "id": "okf_yaml",
+      "name": "YAML Filter",
+      "version": "1.49.0-SNAPSHOT",
+      "class": "net.sf.okapi.filters.yaml.YamlFilter",
+      "parametersClass": "net.sf.okapi.filters.yaml.Parameters",
+      "mimeType": "text/yaml",
+      "extensions": [
+        ".yml",
+        ".yaml"
+      ],
+      "description": "Extracts translatable strings from YAML files with support for key path filtering, inline codes, and subfiltering.",
+      "documentation": "../../../docs/filters/yaml.md"
+    },
+    "schema": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://okapiframework.org/schemas/filters/okf_yaml/schema.json",
+      "title": "YAML Filter Parameters",
+      "description": "Configuration parameters for the Okapi YAML Filter",
+      "type": "object",
+      "properties": {
+        "extractIsolatedStrings": {
+          "type": "boolean",
+          "default": false,
+          "description": "Extract standalone strings without keys"
+        },
+        "extractAllPairs": {
+          "type": "boolean",
+          "default": true,
+          "description": "Extract all key-value pairs"
+        },
+        "exceptions": {
+          "type": "string",
+          "default": "",
+          "description": "Regex to reverse extraction for matching keys"
+        },
+        "useKeyAsName": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use YAML key as TextUnit name"
+        },
+        "useFullKeyPath": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use full path (/key1/key2) for keys"
+        },
+        "useCodeFinder": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable inline code detection"
+        },
+        "codeFinderRules": {
+          "type": "string",
+          "description": "Regex rules for inline code detection (printf, escapes, templates)"
+        },
+        "subfilter": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Subfilter name for processing values (e.g., okf_html)"
+        },
+        "subFilterProcessLiteralAsBlock": {
+          "type": "boolean",
+          "default": false,
+          "description": "Process literal blocks as single block with subfilter"
+        },
+        "escapeNonAscii": {
+          "type": "boolean",
+          "default": false,
+          "description": "Escape non-ASCII characters in output"
+        },
+        "wrap": {
+          "type": "boolean",
+          "default": true,
+          "description": "Wrap long lines in output"
+        },
+        "simplifierRules": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Simplification rules for post-processing"
+        }
+      },
+      "additionalProperties": false
+    },
+    "editorHints": null
+  }
+]
