@@ -15,6 +15,7 @@ import { OkapiVersionSelector } from '@/components/OkapiVersionSelector';
 import { useOkapiVersion } from '@/components/OkapiVersionContext';
 import { getFilterById, getDefaults, getSparseConfig, getFilterVersions, getConfigurations, getFilterDataForConfig, type FilterSchema, type EditorHints, type EditorHintGroup } from '@/data';
 import { formatConfig, outputFormats, type OutputFormat } from '@/lib/outputFormats';
+import { getEditor } from '@/components/editors';
 import { 
   TagListWidget, 
   EnumRadioWidget, 
@@ -253,6 +254,7 @@ function generateUiSchema(schema: FilterSchema, editorHints: EditorHints | null)
   return uiSchema;
 }
 
+
 export function ConfigurePage() {
   const { filterId } = useParams<{ filterId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -264,6 +266,7 @@ export function ConfigurePage() {
   const [linkCopied, setLinkCopied] = useState(false);
   const [outputFormat, setOutputFormat] = useState<OutputFormat>('json');
   const [selectedConfigId, setSelectedConfigId] = useState<string | null>(null);
+  const [editorMode, setEditorMode] = useState<'form' | 'editor'>('editor');
 
   // Resolve the active filter data based on selected configuration's schemaRef
   const activeFilter = useMemo(() => {
@@ -504,7 +507,50 @@ export function ConfigurePage() {
               </Card>
             )}
 
-            {Object.keys(schema.properties).length === 0 ? (
+            {/* Editor mode toggle */}
+            {(() => {
+              // Determine the effective filter ID for editor lookup
+              const effectiveFilterId = selectedConfigId
+                ? (configurations.find(c => c.configId === selectedConfigId)?.schemaRef || filterId || '')
+                : (filterId || '');
+              const EditorComponent = getEditor(effectiveFilterId);
+              const editorAvailable = !!EditorComponent;
+
+              return (
+                <>
+                  {editorAvailable && (
+                    <div className="flex items-center justify-end gap-2">
+                      <span className="text-xs text-muted-foreground">View:</span>
+                      <div className="flex rounded-md border">
+                        <button
+                          type="button"
+                          onClick={() => setEditorMode('editor')}
+                          className={`px-3 py-1 text-xs font-medium rounded-l-md transition-colors ${
+                            editorMode === 'editor'
+                              ? 'bg-primary text-primary-foreground'
+                              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                          }`}
+                        >
+                          Editor
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditorMode('form')}
+                          className={`px-3 py-1 text-xs font-medium rounded-r-md transition-colors ${
+                            editorMode === 'form'
+                              ? 'bg-primary text-primary-foreground'
+                              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                          }`}
+                        >
+                          Form
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {editorAvailable && editorMode === 'editor' ? (
+                    <EditorComponent formData={formData} onChange={setFormData} />
+                  ) : Object.keys(schema.properties).length === 0 ? (
               <Card>
                 <CardContent className="py-8">
                   <p className="text-muted-foreground text-center">
@@ -551,6 +597,9 @@ export function ConfigurePage() {
                 </CardContent>
               </Card>
             )}
+                </>
+              );
+            })()}
           </div>
 
           {/* Output Panel */}
