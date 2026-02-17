@@ -1,73 +1,35 @@
-# React + TypeScript + Vite
+# Okapi Filter Configuration UI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A web-based configuration editor for [Okapi Framework](https://okapiframework.org/) filter parameters. Supports **57 filters** across **11 Okapi versions** (0.38 → 1.48.0) with version-aware schemas, collapsible field groups, and rich editor widgets.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Version-aware**: Select any Okapi version to see the correct filter parameters and defaults
+- **57 filters**: All filters from the Okapi Framework with auto-generated JSON Schemas
+- **Grouped parameters**: Fields organized into collapsible sections (e.g., Word/Excel/PowerPoint for OpenXML)
+- **Rich widgets**: Tag lists, regex builders, code finder editors, delimiter pickers
+- **Sparse output**: Only non-default values are included in the configuration output
+- **Shareable links**: Copy a link with your configuration embedded in the URL
 
-## React Compiler
+## Schema Data
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Filter schemas are imported from [okapi-bridge](https://github.com/gokapi/okapi-bridge), which provides composite JSON Schemas (base + human-curated UI overrides) for each filter version.
 
-## Expanding the ESLint configuration
+To update schemas from okapi-bridge:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run import-schemas                           # uses default path
+npm run import-schemas -- /path/to/okapi-bridge  # custom path
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+This generates `src/data/bridge-bundle.json` containing all composite schemas and version mappings.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Development
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run import-schemas  # generate schema bundle (required before first build)
+npm run dev             # start dev server
+npm run build           # production build
+npm run lint            # run linter
 ```

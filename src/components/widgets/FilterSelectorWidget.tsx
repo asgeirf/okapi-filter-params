@@ -1,4 +1,6 @@
-import { filters } from '@/data';
+import { useMemo } from 'react';
+import { getFiltersForOkapi } from '@/data';
+import { useOkapiVersion } from '../OkapiVersionContext';
 import { Select } from '../ui/select';
 
 interface FilterSelectorWidgetProps {
@@ -15,8 +17,9 @@ interface FilterSelectorWidgetProps {
 export function FilterSelectorWidget(props: FilterSelectorWidgetProps) {
   const { value, onChange, disabled, readonly, options = {} } = props;
   const { allowNull = true, suggestions = [] } = options;
+  const { okapiVersion } = useOkapiVersion();
 
-  // Get all filter IDs, prioritizing suggestions
+  const filters = useMemo(() => getFiltersForOkapi(okapiVersion), [okapiVersion]);
   const allFilterIds = filters.map(f => f.meta.id);
   const sortedIds = [
     ...suggestions.filter(s => allFilterIds.includes(s)),

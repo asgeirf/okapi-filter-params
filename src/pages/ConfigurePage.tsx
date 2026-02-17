@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Copy, Check, RotateCcw, X, Link as LinkIcon } from 'lucide-react';
+import { ArrowLeft, Copy, Check, RotateCcw, X, Link as LinkIcon, ChevronDown, ChevronRight } from 'lucide-react';
 import Form from '@rjsf/core';
 import validator from '@rjsf/validator-ajv8';
 import type { RJSFSchema, UiSchema, FieldTemplateProps } from '@rjsf/utils';
@@ -11,7 +11,10 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { getFilterById, getDefaults, getSparseConfig, type FilterSchema, type EditorHints } from '@/data';
+import { OkapiVersionSelector } from '@/components/OkapiVersionSelector';
+import { useOkapiVersion } from '@/components/OkapiVersionContext';
+import { getFilterById, getDefaults, getSparseConfig, getFilterVersions, getConfigurations, getFilterDataForConfig, type FilterSchema, type EditorHints, type EditorHintGroup } from '@/data';
+import { formatConfig, outputFormats, type OutputFormat } from '@/lib/outputFormats';
 import { 
   TagListWidget, 
   EnumRadioWidget, 
@@ -197,17 +200,23 @@ function DescriptionFieldTemplate() {
   return null;
 }
 
-// Generate UI schema to handle long text fields and apply editorHints widgets
+// Widgets registered in RJSF that can be referenced by x-widget
+const knownWidgets = new Set([
+  'tagList', 'enumRadio', 'delimiterPicker', 'codeFinderRules',
+  'filterSelector', 'regexBuilder', 'columnIndexList', 'codeEditor',
+]);
+
+// Generate UI schema from composite schema x-extensions and editorHints
 function generateUiSchema(schema: FilterSchema, editorHints: EditorHints | null): UiSchema {
   const uiSchema: UiSchema = {
-    'ui:title': ' ',  // Hide root title
-    'ui:description': ' ',  // Hide root description
+    'ui:title': ' ',
+    'ui:description': ' ',
   };
   
-  // Apply editor hints widgets first (they take priority)
+  // Apply editor hints widgets (extracted from x-widget in composite schemas)
   if (editorHints?.fields) {
     for (const [key, hint] of Object.entries(editorHints.fields)) {
-      if (hint.widget) {
+      if (hint.widget && knownWidgets.has(hint.widget)) {
         uiSchema[key] = {
           'ui:widget': hint.widget,
           'ui:options': hint,
@@ -219,10 +228,23 @@ function generateUiSchema(schema: FilterSchema, editorHints: EditorHints | null)
   // Apply fallback rules for fields not covered by hints
   for (const [key, prop] of Object.entries(schema.properties)) {
     if (!uiSchema[key]) {
-      if (prop.type === 'string' && (
+      // Check x-widget directly on the schema property
+      const xWidget = (prop as Record<string, unknown>)['x-widget'] as string | undefined;
+      if (xWidget && knownWidgets.has(xWidget)) {
+        const options: Record<string, unknown> = {};
+        const xPresets = (prop as Record<string, unknown>)['x-presets'];
+        const xPlaceholder = (prop as Record<string, unknown>)['x-placeholder'];
+        if (xPresets) options.presets = xPresets;
+        if (xPlaceholder) options.placeholder = xPlaceholder;
+        if (prop.description) options.description = prop.description;
+        uiSchema[key] = {
+          'ui:widget': xWidget,
+          'ui:options': options,
+        };
+      } else if (prop.type === 'string' && (
         key.toLowerCase().includes('rules') ||
         key.toLowerCase().includes('pattern') ||
-        (prop.default && typeof prop.default === 'string' && prop.default.length > 50)
+        (prop.default && typeof prop.default === 'string' && (prop.default as string).length > 50)
       )) {
         uiSchema[key] = { 'ui:widget': 'textarea' };
       }
@@ -234,14 +256,34 @@ function generateUiSchema(schema: FilterSchema, editorHints: EditorHints | null)
 export function ConfigurePage() {
   const { filterId } = useParams<{ filterId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
-  const filter = useMemo(() => getFilterById(filterId || ''), [filterId]);
+  const { okapiVersion } = useOkapiVersion();
+  const filter = useMemo(() => getFilterById(filterId || '', okapiVersion), [filterId, okapiVersion]);
+  const filterVersions = useMemo(() => getFilterVersions(filterId || ''), [filterId]);
+  const configurations = useMemo(() => getConfigurations(filterId || '', okapiVersion), [filterId, okapiVersion]);
   const [copied, setCopied] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [outputFormat, setOutputFormat] = useState<OutputFormat>('json');
+  const [selectedConfigId, setSelectedConfigId] = useState<string | null>(null);
 
-  const defaults = useMemo(() => 
-    filter ? getDefaults(filter.schema) : {}, 
-    [filter]
+  // Resolve the active filter data based on selected configuration's schemaRef
+  const activeFilter = useMemo(() => {
+    if (selectedConfigId && configurations.length > 0) {
+      const cfg = configurations.find(c => c.configId === selectedConfigId);
+      if (cfg?.schemaRef) {
+        return getFilterDataForConfig(filterId || '', cfg, okapiVersion) ?? filter;
+      }
+    }
+    return filter;
+  }, [filter, selectedConfigId, configurations, filterId, okapiVersion]);
+
+  const schemaDefaults = useMemo(() => 
+    activeFilter ? getDefaults(activeFilter.schema) : {}, 
+    [activeFilter]
   );
+
+  // When a preset is loaded, its values become the baseline for modification detection.
+  const [presetBaseline, setPresetBaseline] = useState<Record<string, unknown> | null>(null);
+  const defaults = presetBaseline ?? schemaDefaults;
   
   // Initialize formData from URL params or defaults
   const [formData, setFormData] = useState<Record<string, unknown>>(() => {
@@ -257,51 +299,85 @@ export function ConfigurePage() {
     return defaults;
   });
 
-  // Update formData when defaults change (e.g., filter switch)
+  // Reset formData when the base filter changes (i.e. filterId or okapiVersion),
+  // but NOT when defaults change due to preset/schemaRef selection.
   useEffect(() => {
+    setSelectedConfigId(null);
+    setPresetBaseline(null);
     const configParam = searchParams.get('config');
     if (configParam) {
       try {
         const decoded = JSON.parse(atob(configParam));
-        setFormData({ ...defaults, ...decoded });
+        const baseDefaults = filter ? getDefaults(filter.schema) : {};
+        setFormData({ ...baseDefaults, ...decoded });
       } catch {
-        setFormData(defaults);
+        setFormData(filter ? getDefaults(filter.schema) : {});
       }
     } else {
-      setFormData(defaults);
+      setFormData(filter ? getDefaults(filter.schema) : {});
     }
-  }, [defaults, searchParams]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterId, okapiVersion]);
 
   const sparseConfig = useMemo(() => 
     getSparseConfig(formData, defaults), 
     [formData, defaults]
   );
 
-  const configOutput = useMemo(() => sparseConfig, [sparseConfig]);
+  const configOutputText = useMemo(() => 
+    formatConfig(sparseConfig, outputFormat), 
+    [sparseConfig, outputFormat]
+  );
 
   const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(JSON.stringify(configOutput, null, 2));
+    navigator.clipboard.writeText(configOutputText);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, [configOutput]);
+  }, [configOutputText]);
 
   const handleCopyLink = useCallback(() => {
     const hasConfig = Object.keys(sparseConfig).length > 0;
-    // Use hash-based URL for GitHub Pages compatibility
     const base = window.location.origin + window.location.pathname + window.location.hash.split('?')[0];
-    const url = hasConfig 
-      ? `${base}?config=${btoa(JSON.stringify(sparseConfig))}`
-      : base;
-    navigator.clipboard.writeText(url);
+    const params = new URLSearchParams();
+    params.set('okapi', okapiVersion);
+    if (hasConfig) params.set('config', btoa(JSON.stringify(sparseConfig)));
+    navigator.clipboard.writeText(`${base}?${params.toString()}`);
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2000);
-  }, [sparseConfig]);
+  }, [sparseConfig, okapiVersion]);
 
   const handleReset = useCallback(() => {
-    setFormData(defaults);
-    // Clear URL params when resetting
+    setPresetBaseline(null);
+    setSelectedConfigId(null);
+    setFormData(schemaDefaults);
     setSearchParams({});
-  }, [defaults, setSearchParams]);
+  }, [schemaDefaults, setSearchParams]);
+
+  const handleLoadPreset = useCallback((configId: string) => {
+    setSelectedConfigId(configId);
+    const preset = configurations.find(c => c.configId === configId);
+    if (!preset) return;
+
+    // If this config has a schemaRef, the schema/defaults will change via activeFilter.
+    // We need to compute new defaults for the target schema.
+    let targetDefaults = schemaDefaults;
+    if (preset.schemaRef) {
+      const targetFilter = getFilterDataForConfig(filterId || '', preset, okapiVersion);
+      if (targetFilter) {
+        targetDefaults = getDefaults(targetFilter.schema);
+      }
+    }
+
+    const merged = { ...targetDefaults };
+    if (preset.parameters) {
+      for (const [key, value] of Object.entries(preset.parameters)) {
+        merged[key] = value;
+      }
+    }
+    // Preset values become the new baseline — nothing shows as modified
+    setPresetBaseline(merged);
+    setFormData(merged);
+  }, [configurations, schemaDefaults, filterId, okapiVersion]);
 
   const handleResetField = useCallback((fieldName: string) => {
     setFormData(prev => ({
@@ -317,8 +393,8 @@ export function ConfigurePage() {
   }), [defaults, formData, handleResetField]);
 
   const uiSchema = useMemo(() => 
-    filter ? generateUiSchema(filter.schema, filter.editorHints) : {}, 
-    [filter]
+    activeFilter ? generateUiSchema(activeFilter.schema, activeFilter.editorHints) : {}, 
+    [activeFilter]
   );
 
   if (!filter) {
@@ -344,7 +420,9 @@ export function ConfigurePage() {
     );
   }
 
-  const { meta, schema } = filter;
+  const { meta } = filter;
+  const { schema, editorHints } = activeFilter ?? filter;
+  const groups = editorHints?.groups;
 
   return (
     <div className="min-h-screen bg-background">
@@ -359,10 +437,18 @@ export function ConfigurePage() {
             </Link>
             <div>
               <h1 className="text-xl font-bold">{meta.name}</h1>
-              <p className="text-sm text-muted-foreground font-mono">{meta.id}</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-sm text-muted-foreground font-mono">{meta.id}</span>
+                {filterVersions.length > 1 && (
+                  <span className="text-xs bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-mono">
+                    schema v{meta.schemaVersion}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-3">
+            <OkapiVersionSelector />
             <Button variant="outline" size="sm" onClick={handleCopyLink}>
               {linkCopied ? (
                 <>
@@ -387,42 +473,87 @@ export function ConfigurePage() {
       <main className="container mx-auto px-4 py-6">
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Form Panel */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Parameters</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Configure filter parameters. Only non-default values will be saved.
-              </p>
-            </CardHeader>
-            <CardContent>
-              {Object.keys(schema.properties).length === 0 ? (
-                <p className="text-muted-foreground py-4">
-                  This filter has no configurable parameters.
-                </p>
-              ) : (
-                <Form
-                  schema={schema as RJSFSchema}
-                  uiSchema={uiSchema}
-                  formData={formData}
-                  formContext={formContext}
-                  validator={validator}
-                  onChange={(e) => setFormData(e.formData || {})}
-                  widgets={baseWidgets}
-                  templates={{
-                    FieldTemplate,
-                    ObjectFieldTemplate,
-                    TitleFieldTemplate,
-                    DescriptionFieldTemplate,
-                  }}
-                  liveValidate
-                >
-                  <div /> {/* Hide submit button */}
-                </Form>
-              )}
-            </CardContent>
-          </Card>
+          <div className="space-y-4">
+            {/* Configuration Presets */}
+            {configurations.length > 1 && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">Configuration Presets</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Load a preset configuration from this filter
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {configurations.map(cfg => (
+                      <Button
+                        key={cfg.configId}
+                        variant={selectedConfigId === cfg.configId ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => handleLoadPreset(cfg.configId)}
+                        title={cfg.description || cfg.name}
+                      >
+                        {cfg.name}
+                        {cfg.isDefault && (
+                          <span className="ml-1 text-xs text-muted-foreground">(default)</span>
+                        )}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-          {/* JSON Preview Panel */}
+            {Object.keys(schema.properties).length === 0 ? (
+              <Card>
+                <CardContent className="py-8">
+                  <p className="text-muted-foreground text-center">
+                    This filter has no configurable parameters.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : groups && groups.length > 0 ? (
+              <GroupedForm
+                schema={schema}
+                groups={groups}
+                uiSchema={uiSchema}
+                formData={formData}
+                formContext={formContext}
+                onFormData={setFormData}
+              />
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Parameters</CardTitle>
+                  <p className="text-sm text-muted-foreground">
+                    Configure filter parameters. Only non-default values will be saved.
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <Form
+                    schema={schema as RJSFSchema}
+                    uiSchema={uiSchema}
+                    formData={formData}
+                    formContext={formContext}
+                    validator={validator}
+                    onChange={(e) => setFormData(e.formData || {})}
+                    widgets={baseWidgets}
+                    templates={{
+                      FieldTemplate,
+                      ObjectFieldTemplate,
+                      TitleFieldTemplate,
+                      DescriptionFieldTemplate,
+                    }}
+                    liveValidate
+                  >
+                    <div />
+                  </Form>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Output Panel */}
           <div className="lg:sticky lg:top-24 lg:self-start">
             <Card>
               <CardHeader>
@@ -442,15 +573,34 @@ export function ConfigurePage() {
                     )}
                   </Button>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {Object.keys(sparseConfig).length === 0
-                    ? 'Using all default values'
-                    : `${Object.keys(sparseConfig).length} parameter${Object.keys(sparseConfig).length !== 1 ? 's' : ''} overridden`}
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    {Object.keys(sparseConfig).length === 0
+                      ? 'Using all default values'
+                      : `${Object.keys(sparseConfig).length} parameter${Object.keys(sparseConfig).length !== 1 ? 's' : ''} overridden`}
+                  </p>
+                  {/* Output format tabs */}
+                  <div className="flex rounded-md border">
+                    {outputFormats.map(fmt => (
+                      <button
+                        key={fmt.value}
+                        type="button"
+                        onClick={() => setOutputFormat(fmt.value)}
+                        className={`px-3 py-1 text-xs font-medium transition-colors ${
+                          outputFormat === fmt.value
+                            ? 'bg-primary text-primary-foreground'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                        } ${fmt.value === 'json' ? 'rounded-l-md' : ''} ${fmt.value === 'fprm' ? 'rounded-r-md' : ''}`}
+                      >
+                        {fmt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <pre className="bg-muted p-4 rounded-md text-sm overflow-auto max-h-96 font-mono">
-                  {JSON.stringify(configOutput, null, 2)}
+                  {configOutputText || '{}'}
                 </pre>
               </CardContent>
             </Card>
@@ -460,27 +610,199 @@ export function ConfigurePage() {
                 <CardTitle className="text-lg">Filter Info</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
+                {meta.mimeType && (
+                  <div>
+                    <span className="text-muted-foreground">MIME Type:</span>{' '}
+                    <code className="bg-muted px-1 rounded">{meta.mimeType}</code>
+                  </div>
+                )}
+                {meta.extensions.length > 0 && (
+                  <div>
+                    <span className="text-muted-foreground">Extensions:</span>{' '}
+                    {meta.extensions.map((ext) => (
+                      <code key={ext} className="bg-muted px-1 rounded mr-1">
+                        {ext}
+                      </code>
+                    ))}
+                  </div>
+                )}
+                {meta.class && (
+                  <div>
+                    <span className="text-muted-foreground">Class:</span>{' '}
+                    <code className="bg-muted px-1 rounded text-xs">{meta.class}</code>
+                  </div>
+                )}
                 <div>
-                  <span className="text-muted-foreground">MIME Type:</span>{' '}
-                  <code className="bg-muted px-1 rounded">{meta.mimeType}</code>
+                  <span className="text-muted-foreground">Okapi Version:</span>{' '}
+                  <code className="bg-muted px-1 rounded">{okapiVersion}</code>
                 </div>
-                <div>
-                  <span className="text-muted-foreground">Extensions:</span>{' '}
-                  {meta.extensions.map((ext) => (
-                    <code key={ext} className="bg-muted px-1 rounded mr-1">
-                      {ext}
-                    </code>
-                  ))}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Class:</span>{' '}
-                  <code className="bg-muted px-1 rounded text-xs">{meta.class}</code>
-                </div>
+                {filterVersions.length > 1 && (
+                  <div>
+                    <span className="text-muted-foreground">Schema Versions:</span>{' '}
+                    {filterVersions.map(v => (
+                      <span key={v.version} className={`inline-block mr-1 px-1.5 py-0.5 rounded text-xs font-mono ${
+                        v.version === meta.schemaVersion
+                          ? 'bg-amber-100 text-amber-800'
+                          : 'bg-muted text-muted-foreground'
+                      }`}>
+                        v{v.version}
+                        <span className="text-[10px] ml-1 opacity-70">({v.introducedInOkapi})</span>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
         </div>
       </main>
     </div>
+  );
+}
+
+/** Renders form fields organized into collapsible groups */
+function GroupedForm({
+  schema,
+  groups,
+  uiSchema,
+  formData,
+  formContext,
+  onFormData,
+}: {
+  schema: FilterSchema;
+  groups: EditorHintGroup[];
+  uiSchema: UiSchema;
+  formData: Record<string, unknown>;
+  formContext: FieldContext;
+  onFormData: (data: Record<string, unknown>) => void;
+}) {
+  // Track which groups are collapsed
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => {
+    const collapsed = new Set<string>();
+    groups.forEach(g => { if (g.collapsed) collapsed.add(g.id); });
+    return collapsed;
+  });
+
+  const toggleGroup = useCallback((groupId: string) => {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(groupId)) next.delete(groupId);
+      else next.add(groupId);
+      return next;
+    });
+  }, []);
+
+  // Collect fields that are in groups
+  const groupedFields = new Set<string>();
+  groups.forEach(g => g.fields.forEach(f => groupedFields.add(f)));
+
+  // Fields not in any group
+  const ungroupedFields = Object.keys(schema.properties).filter(f => !groupedFields.has(f));
+
+  const renderGroupSchema = (fields: string[]): RJSFSchema => {
+    const props: Record<string, unknown> = {};
+    for (const field of fields) {
+      if (schema.properties[field]) {
+        props[field] = schema.properties[field];
+      }
+    }
+    return {
+      type: 'object',
+      properties: props as RJSFSchema['properties'],
+    };
+  };
+
+  const renderGroupUiSchema = (fields: string[]): UiSchema => {
+    const ui: UiSchema = {
+      'ui:title': ' ',
+      'ui:description': ' ',
+      'ui:order': fields.filter(f => schema.properties[f]),
+    };
+    for (const field of fields) {
+      if (uiSchema[field]) {
+        ui[field] = uiSchema[field];
+      }
+    }
+    return ui;
+  };
+
+  return (
+    <>
+      {groups.map(group => {
+        const validFields = group.fields.filter(f => schema.properties[f]);
+        if (validFields.length === 0) return null;
+        const isCollapsed = collapsedGroups.has(group.id);
+
+        return (
+          <Card key={group.id}>
+            <CardHeader
+              className="cursor-pointer select-none"
+              onClick={() => toggleGroup(group.id)}
+            >
+              <div className="flex items-center gap-2">
+                {isCollapsed
+                  ? <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  : <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                }
+                <CardTitle className="text-lg">{group.label}</CardTitle>
+              </div>
+              {group.description && (
+                <p className="text-sm text-muted-foreground ml-6">{group.description}</p>
+              )}
+            </CardHeader>
+            {!isCollapsed && (
+              <CardContent>
+                <Form
+                  schema={renderGroupSchema(validFields)}
+                  uiSchema={renderGroupUiSchema(validFields)}
+                  formData={formData}
+                  formContext={formContext}
+                  validator={validator}
+                  onChange={(e) => onFormData({ ...formData, ...e.formData })}
+                  widgets={baseWidgets}
+                  templates={{
+                    FieldTemplate,
+                    ObjectFieldTemplate,
+                    TitleFieldTemplate,
+                    DescriptionFieldTemplate,
+                  }}
+                  liveValidate
+                >
+                  <div />
+                </Form>
+              </CardContent>
+            )}
+          </Card>
+        );
+      })}
+
+      {ungroupedFields.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Other Settings</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Form
+              schema={renderGroupSchema(ungroupedFields)}
+              uiSchema={renderGroupUiSchema(ungroupedFields)}
+              formData={formData}
+              formContext={formContext}
+              validator={validator}
+              onChange={(e) => onFormData({ ...formData, ...e.formData })}
+              widgets={baseWidgets}
+              templates={{
+                FieldTemplate,
+                ObjectFieldTemplate,
+                TitleFieldTemplate,
+                DescriptionFieldTemplate,
+              }}
+              liveValidate
+            >
+              <div />
+            </Form>
+          </CardContent>
+        </Card>
+      )}
+    </>
   );
 }
