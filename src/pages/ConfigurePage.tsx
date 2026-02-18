@@ -569,7 +569,7 @@ export function ConfigurePage() {
               const effectiveFilterId = selectedConfigId
                 ? (configurations.find(c => c.configId === selectedConfigId)?.schemaRef || filterId || '')
                 : (filterId || '');
-              const EditorComponent = getEditor(effectiveFilterId);
+              const EditorComponent = getEditor(effectiveFilterId, schema as unknown as Record<string, unknown>);
               const editorAvailable = !!EditorComponent;
 
               return (
@@ -605,7 +605,7 @@ export function ConfigurePage() {
                   )}
 
                   {editorAvailable && editorMode === 'editor' ? (
-                    <EditorComponent formData={formData} onChange={setFormData} defaults={defaults} />
+                    <EditorComponent formData={formData} onChange={setFormData} defaults={defaults} schema={schema as unknown as Record<string, unknown>} />
                   ) : Object.keys(schema.properties).length === 0 ? (
               <Card>
                 <CardContent className="py-8">

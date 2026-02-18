@@ -13,6 +13,7 @@ export interface EditorProps {
   formData: Record<string, unknown>;
   onChange: (data: Record<string, unknown>) => void;
   defaults?: Record<string, unknown>;
+  schema?: Record<string, unknown>;
 }
 
 // Check if a field value differs from its default
@@ -87,9 +88,12 @@ export function FieldGroup({
   label,
   children,
 }: {
-  label: string;
+  label?: string;
   children: ReactNode;
 }) {
+  if (!label) {
+    return <div className="space-y-1">{children}</div>;
+  }
   return (
     <fieldset className="border rounded-md p-3 mt-3">
       <legend className="text-sm font-medium px-1">{label}</legend>

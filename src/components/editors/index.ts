@@ -13,6 +13,7 @@ import { TableEditor } from './TableEditor';
 import { TsEditor } from './TsEditor';
 import { IdmlEditor } from './IdmlEditor';
 import { PlaintextEditor } from './PlaintextEditor';
+import { GenericEditor } from './GenericEditor';
 
 export type { EditorProps };
 
@@ -44,14 +45,20 @@ const editorRegistry: Record<string, ComponentType<EditorProps>> = {
 };
 
 /**
- * Get the dedicated editor component for a filter, if one exists.
+ * Get the editor component for a filter.
+ * Returns a dedicated editor if one exists, otherwise the GenericEditor.
  */
-export function getEditor(filterId: string): ComponentType<EditorProps> | undefined {
-  return editorRegistry[filterId];
+export function getEditor(filterId: string, schema?: Record<string, unknown>): ComponentType<EditorProps> | undefined {
+  const dedicated = editorRegistry[filterId];
+  if (dedicated) return dedicated;
+  // Use generic editor if schema has properties
+  const props = schema?.properties as Record<string, unknown> | undefined;
+  if (props && Object.keys(props).length > 0) return GenericEditor;
+  return undefined;
 }
 
 /**
- * Check if a dedicated editor exists for the given filter ID.
+ * Check if a dedicated (non-generic) editor exists for the given filter ID.
  */
 export function hasEditor(filterId: string): boolean {
   return filterId in editorRegistry;
