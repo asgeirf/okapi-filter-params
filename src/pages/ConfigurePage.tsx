@@ -207,6 +207,21 @@ const knownWidgets = new Set([
   'filterSelector', 'regexBuilder', 'columnIndexList', 'codeEditor',
 ]);
 
+// Recursively rewrite $ref paths from $defs to definitions for RJSF compatibility
+function rewriteRefs(obj: unknown): unknown {
+  if (obj == null || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(rewriteRefs);
+  const result: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+    if (k === '$ref' && typeof v === 'string') {
+      result[k] = v.replace('#/$defs/', '#/definitions/');
+    } else {
+      result[k] = rewriteRefs(v);
+    }
+  }
+  return result;
+}
+
 // Generate UI schema from composite schema x-extensions and editorHints
 function generateUiSchema(schema: FilterSchema, editorHints: EditorHints | null): UiSchema {
   const uiSchema: UiSchema = {
@@ -479,8 +494,23 @@ export function ConfigurePage() {
   }
 
   const { meta } = filter;
-  const { schema, editorHints } = activeFilter ?? filter;
+  const { schema: rawSchema, editorHints } = activeFilter ?? filter;
   const groups = editorHints?.groups;
+
+  // RJSF uses draft-07 "definitions", not draft 2019-09+ "$defs"
+  const schema = useMemo(() => {
+    const s = rawSchema as unknown as Record<string, unknown>;
+    if (!s['$defs']) return rawSchema;
+    const { '$defs': defs, properties: props, ...rest } = s;
+    const rewrittenDefs = rewriteRefs(defs);
+    const rewrittenProps: Record<string, unknown> = {};
+    if (props && typeof props === 'object') {
+      for (const [k, v] of Object.entries(props as Record<string, unknown>)) {
+        rewrittenProps[k] = rewriteRefs(v);
+      }
+    }
+    return { ...rest, definitions: rewrittenDefs, properties: rewrittenProps } as unknown as typeof rawSchema;
+  }, [rawSchema]);
 
   return (
     <div className="min-h-screen bg-background">
