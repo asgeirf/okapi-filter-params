@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useTransition } from 'react';
 import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Copy, Check, RotateCcw, X, Link as LinkIcon, ChevronDown, ChevronRight } from 'lucide-react';
 import Form from '@rjsf/core';
@@ -296,6 +296,7 @@ export function ConfigurePage() {
     const viewParam = searchParams.get('view');
     return viewParam === 'form' ? 'form' : 'editor';
   });
+  const [isPending, startTransition] = useTransition();
 
   // Resolve the active filter data based on selected configuration's schemaRef
   const activeFilter = useMemo(() => {
@@ -442,15 +443,17 @@ export function ConfigurePage() {
   }, [sparseConfig, okapiVersion, selectedConfigId, editorMode]);
 
   const handleSetEditorMode = useCallback((mode: 'form' | 'editor') => {
-    setEditorMode(mode);
-    setSearchParams(prev => {
-      const next = new URLSearchParams(prev);
-      if (mode === 'form') {
-        next.set('view', 'form');
-      } else {
-        next.delete('view');
-      }
-      return next;
+    startTransition(() => {
+      setEditorMode(mode);
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        if (mode === 'form') {
+          next.set('view', 'form');
+        } else {
+          next.delete('view');
+        }
+        return next;
+      });
     });
   }, [setSearchParams]);
 
@@ -462,35 +465,37 @@ export function ConfigurePage() {
   }, [schemaDefaults, setSearchParams]);
 
   const handleLoadPreset = useCallback((configId: string) => {
-    setSelectedConfigId(configId);
-    const preset = configurations.find(c => c.configId === configId);
-    if (!preset) return;
+    startTransition(() => {
+      setSelectedConfigId(configId);
+      const preset = configurations.find(c => c.configId === configId);
+      if (!preset) return;
 
-    // If this config has a schemaRef, the schema/defaults will change via activeFilter.
-    // We need to compute new defaults for the target schema.
-    let targetDefaults = schemaDefaults;
-    if (preset.schemaRef) {
-      const targetFilter = getFilterDataForConfig(filterId || '', preset, okapiVersion);
-      if (targetFilter) {
-        targetDefaults = getDefaults(targetFilter.schema);
+      // If this config has a schemaRef, the schema/defaults will change via activeFilter.
+      // We need to compute new defaults for the target schema.
+      let targetDefaults = schemaDefaults;
+      if (preset.schemaRef) {
+        const targetFilter = getFilterDataForConfig(filterId || '', preset, okapiVersion);
+        if (targetFilter) {
+          targetDefaults = getDefaults(targetFilter.schema);
+        }
       }
-    }
 
-    const merged = { ...targetDefaults };
-    if (preset.parameters) {
-      for (const [key, value] of Object.entries(preset.parameters)) {
-        merged[key] = value;
+      const merged = { ...targetDefaults };
+      if (preset.parameters) {
+        for (const [key, value] of Object.entries(preset.parameters)) {
+          merged[key] = value;
+        }
       }
-    }
-    // Preset values become the new baseline — nothing shows as modified
-    setPresetBaseline(merged);
-    setFormData(merged);
-    // Persist preset in URL
-    setSearchParams(prev => {
-      const next = new URLSearchParams(prev);
-      next.set('preset', configId);
-      next.delete('config');
-      return next;
+      // Preset values become the new baseline — nothing shows as modified
+      setPresetBaseline(merged);
+      setFormData(merged);
+      // Persist preset in URL
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        next.set('preset', configId);
+        next.delete('config');
+        return next;
+      });
     });
   }, [configurations, schemaDefaults, filterId, okapiVersion, setSearchParams]);
 
@@ -640,7 +645,7 @@ export function ConfigurePage() {
       <main className="container mx-auto px-4 py-6">
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Form Panel */}
-          <div className="space-y-4">
+          <div className={`space-y-4 transition-opacity ${isPending ? 'opacity-50 pointer-events-none' : ''}`}>
             {/* Configuration Presets */}
             {configurations.length > 1 && (
               <Card>
