@@ -129,3 +129,17 @@ console.log(`✓ Imported ${schemaCount} schemas for ${filterCount} filters acro
 console.log(`  Configurations: ${totalConfigs} presets`);
 console.log(`  Okapi versions: ${sortedOkapiVersions.join(', ')}`);
 console.log(`  Output: ${outPath} (${sizeKb} KB)`);
+
+// --- Import filter documentation bundle ---
+const docsBundleFile = join(bridgePath, 'filter-docs/filter-docs-bundle.json');
+if (existsSync(docsBundleFile)) {
+  const docsBundle = JSON.parse(readFileSync(docsBundleFile, 'utf-8'));
+  const docsOutPath = join(repoRoot, 'src/data/filter-docs-bundle.json');
+  writeFileSync(docsOutPath, JSON.stringify(docsBundle));
+  const docsFilterCount = Object.keys(docsBundle.filters || {}).length;
+  const docsSizeKb = (Buffer.byteLength(JSON.stringify(docsBundle)) / 1024).toFixed(1);
+  console.log(`✓ Imported documentation for ${docsFilterCount} filters`);
+  console.log(`  Output: ${docsOutPath} (${docsSizeKb} KB)`);
+} else {
+  console.log(`⚠ No filter-docs-bundle.json found at ${docsBundleFile} (skipping docs import)`);
+}

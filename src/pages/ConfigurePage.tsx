@@ -16,6 +16,10 @@ import { useOkapiVersion } from '@/components/OkapiVersionContext';
 import { getFilterById, getDefaults, getSparseConfig, getFilterVersions, getConfigurations, getFilterDataForConfig, type FilterSchema, type EditorHints, type EditorHintGroup } from '@/data';
 import { formatConfig, toJson, toYaml, type SerializationFormat } from '@/lib/outputFormats';
 import { getEditor } from '@/components/editors';
+import { getFilterDoc, getParamDoc } from '@/data/filterDocs';
+import { ParamHelp } from '@/components/ui/param-help';
+import { ExternalLink, AlertTriangle } from 'lucide-react';
+import { CodeBlock } from '@/components/ui/code-block';
 import { 
   TagListWidget, 
   EnumRadioWidget, 
@@ -31,6 +35,7 @@ interface FieldContext {
   defaults: Record<string, unknown>;
   formData: Record<string, unknown>;
   onResetField: (fieldName: string) => void;
+  filterId: string;
 }
 
 // Custom widgets for RJSF - base widgets plus rich editors
@@ -129,13 +134,19 @@ function FieldTemplate<T = unknown, S extends RJSFSchema = RJSFSchema>(
     }
   };
 
+  // Look up parameter documentation from wiki
+  const paramDoc = formContext?.filterId ? getParamDoc(formContext.filterId, fieldName) : undefined;
+
   // Label component: description as primary, fieldName as code below
   const FieldLabel = () => (
     <div className={`flex-1 ${isDeprecated ? 'opacity-50' : ''}`}>
-      <Label htmlFor={id} className={isDeprecated ? 'line-through' : ''}>
-        {descriptionText || fieldName}
-        {isDeprecated && <span className="ml-2 text-xs text-destructive">(deprecated)</span>}
-      </Label>
+      <div className="flex items-center gap-1">
+        <Label htmlFor={id} className={isDeprecated ? 'line-through' : ''}>
+          {descriptionText || fieldName}
+          {isDeprecated && <span className="ml-2 text-xs text-destructive">(deprecated)</span>}
+        </Label>
+        {paramDoc && <ParamHelp doc={paramDoc} />}
+      </div>
       {descriptionText && (
         <code className="block text-xs text-muted-foreground mt-0.5 font-mono">{fieldName}</code>
       )}
@@ -277,10 +288,14 @@ export function ConfigurePage() {
   const filter = useMemo(() => getFilterById(filterId || '', okapiVersion), [filterId, okapiVersion]);
   const filterVersions = useMemo(() => getFilterVersions(filterId || ''), [filterId]);
   const configurations = useMemo(() => getConfigurations(filterId || '', okapiVersion), [filterId, okapiVersion]);
+  const filterDoc = useMemo(() => getFilterDoc(filterId || ''), [filterId]);
   const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
   const [selectedConfigId, setSelectedConfigId] = useState<string | null>(null);
-  const [editorMode, setEditorMode] = useState<'form' | 'editor'>('editor');
+  const [editorMode, setEditorMode] = useState<'form' | 'editor'>(() => {
+    const viewParam = searchParams.get('view');
+    return viewParam === 'form' ? 'form' : 'editor';
+  });
 
   // Resolve the active filter data based on selected configuration's schemaRef
   const activeFilter = useMemo(() => {
@@ -323,6 +338,8 @@ export function ConfigurePage() {
     setPresetBaseline(null);
     const presetParam = searchParams.get('preset');
     const configParam = searchParams.get('config');
+    const viewParam = searchParams.get('view');
+    setEditorMode(viewParam === 'form' ? 'form' : 'editor');
 
     // Restore preset from URL if available
     if (presetParam && configurations.length > 0) {
@@ -382,6 +399,17 @@ export function ConfigurePage() {
     (activeSchema as any)?.['x-filter']?.serializationFormat === 'yaml'
       ? 'yaml' : 'stringParameters';
 
+  // Keys the user has changed relative to the effective baseline (preset or schema defaults)
+  const dirtyKeys = useMemo(() => {
+    const keys = new Set<string>();
+    for (const key of Object.keys(sparseConfig)) {
+      if (JSON.stringify(formData[key]) !== JSON.stringify(defaults[key])) {
+        keys.add(key);
+      }
+    }
+    return keys;
+  }, [sparseConfig, formData, defaults]);
+
   // Always show native .fprm format in the output panel
   const configOutputText = useMemo(() => 
     formatConfig(sparseConfig, 'fprm', serializationFormat), 
@@ -406,11 +434,25 @@ export function ConfigurePage() {
     const params = new URLSearchParams();
     params.set('okapi', okapiVersion);
     if (selectedConfigId) params.set('preset', selectedConfigId);
+    if (editorMode === 'form') params.set('view', 'form');
     if (hasConfig) params.set('config', btoa(JSON.stringify(sparseConfig)));
     navigator.clipboard.writeText(`${base}?${params.toString()}`);
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2000);
-  }, [sparseConfig, okapiVersion, selectedConfigId]);
+  }, [sparseConfig, okapiVersion, selectedConfigId, editorMode]);
+
+  const handleSetEditorMode = useCallback((mode: 'form' | 'editor') => {
+    setEditorMode(mode);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      if (mode === 'form') {
+        next.set('view', 'form');
+      } else {
+        next.delete('view');
+      }
+      return next;
+    });
+  }, [setSearchParams]);
 
   const handleReset = useCallback(() => {
     setPresetBaseline(null);
@@ -463,7 +505,8 @@ export function ConfigurePage() {
     defaults,
     formData,
     onResetField: handleResetField,
-  }), [defaults, formData, handleResetField]);
+    filterId: filterId || '',
+  }), [defaults, formData, handleResetField, filterId]);
 
   const uiSchema = useMemo(() => 
     activeFilter ? generateUiSchema(activeFilter.schema, activeFilter.editorHints) : {}, 
@@ -506,7 +549,12 @@ export function ConfigurePage() {
     const rewrittenProps: Record<string, unknown> = {};
     if (props && typeof props === 'object') {
       for (const [k, v] of Object.entries(props as Record<string, unknown>)) {
-        rewrittenProps[k] = rewriteRefs(v);
+        const rewritten = rewriteRefs(v) as Record<string, unknown>;
+        // RJSF requires `items` on array types — add a string fallback if missing
+        if (rewritten && rewritten.type === 'array' && !rewritten.items) {
+          rewritten.items = { type: 'string' };
+        }
+        rewrittenProps[k] = rewritten;
       }
     }
     return { ...rest, definitions: rewrittenDefs, properties: rewrittenProps } as unknown as typeof rawSchema;
@@ -558,6 +606,37 @@ export function ConfigurePage() {
         </div>
       </header>
 
+      {/* Filter overview and limitations from wiki docs */}
+      {filterDoc && (filterDoc.overview || (filterDoc.limitations && filterDoc.limitations.length > 0)) && (
+        <div className="container mx-auto px-4 pt-4 space-y-3">
+          {filterDoc.overview && (
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {filterDoc.overview}
+              {filterDoc.wikiUrl && (
+                <a
+                  href={filterDoc.wikiUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 ml-2 text-primary hover:underline"
+                >
+                  Wiki <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+            </p>
+          )}
+          {filterDoc.limitations && filterDoc.limitations.length > 0 && (
+            <div className="flex items-start gap-2 text-sm bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+              <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div className="text-amber-800">
+                {filterDoc.limitations.map((lim, i) => (
+                  <p key={i}>{lim}</p>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <main className="container mx-auto px-4 py-6">
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Form Panel */}
@@ -606,36 +685,35 @@ export function ConfigurePage() {
                 <>
                   {editorAvailable && (
                     <div className="flex items-center justify-end gap-2">
-                      <span className="text-xs text-muted-foreground">View:</span>
                       <div className="flex rounded-md border">
                         <button
                           type="button"
-                          onClick={() => setEditorMode('editor')}
-                          className={`px-3 py-1 text-xs font-medium rounded-l-md transition-colors ${
+                          onClick={() => handleSetEditorMode('editor')}
+                          className={`px-3 py-1.5 text-xs font-medium rounded-l-md transition-colors ${
                             editorMode === 'editor'
-                              ? 'bg-primary text-primary-foreground'
+                              ? 'bg-blue-600 text-white'
                               : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                           }`}
                         >
-                          Editor
+                          Rainbow UI
                         </button>
                         <button
                           type="button"
-                          onClick={() => setEditorMode('form')}
-                          className={`px-3 py-1 text-xs font-medium rounded-r-md transition-colors ${
+                          onClick={() => handleSetEditorMode('form')}
+                          className={`px-3 py-1.5 text-xs font-medium rounded-r-md transition-colors ${
                             editorMode === 'form'
-                              ? 'bg-primary text-primary-foreground'
+                              ? 'bg-blue-600 text-white'
                               : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                           }`}
                         >
-                          Form
+                          Dynamic Form
                         </button>
                       </div>
                     </div>
                   )}
 
                   {editorAvailable && editorMode === 'editor' ? (
-                    <EditorComponent formData={formData} onChange={setFormData} defaults={defaults} schema={schema as unknown as Record<string, unknown>} />
+                    <EditorComponent formData={formData} onChange={setFormData} defaults={defaults} schema={schema as unknown as Record<string, unknown>} filterId={filterId || ''} />
                   ) : Object.keys(schema.properties).length === 0 ? (
               <Card>
                 <CardContent className="py-8">
@@ -732,9 +810,11 @@ export function ConfigurePage() {
                 </p>
               </CardHeader>
               <CardContent>
-                <pre className="bg-muted p-4 rounded-md text-sm overflow-auto max-h-96 font-mono">
-                  {configOutputText}
-                </pre>
+                <CodeBlock
+                  code={configOutputText}
+                  language={serializationFormat === 'yaml' ? 'yaml' : 'fprm'}
+                  dirtyKeys={dirtyKeys}
+                />
               </CardContent>
             </Card>
 

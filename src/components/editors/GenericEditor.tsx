@@ -2,6 +2,9 @@ import { type EditorProps, FieldGroup, BoolField, TextField, TextAreaField, Numb
 import { Card, CardContent } from '@/components/ui/card';
 import { ElementRulesEditor } from './ElementRulesEditor';
 import { AttributeRulesEditor } from './AttributeRulesEditor';
+import { getParamDoc } from '@/data/filterDocs';
+import { HelpPopover } from '@/components/ui/help-popover';
+import { ParamHelp } from '@/components/ui/param-help';
 
 interface SchemaProperty {
   type?: string;
@@ -26,7 +29,7 @@ interface SchemaGroup {
  * Generic schema-driven editor that auto-generates fields from JSON Schema
  * metadata, mirroring Okapi's GenericEditor.java behavior.
  */
-export function GenericEditor({ formData, onChange, defaults, schema }: EditorProps) {
+export function GenericEditor({ formData, onChange, defaults, schema, filterId }: EditorProps) {
   if (!schema) return null;
 
   const properties = (schema.properties ?? {}) as Record<string, SchemaProperty>;
@@ -34,6 +37,13 @@ export function GenericEditor({ formData, onChange, defaults, schema }: EditorPr
   const s = (k: string, v: unknown) => set(formData, onChange, k, v);
   const d = (key: string) => isDirty(formData, defaults, key);
   const r = (key: string) => () => { if (defaults && key in defaults) set(formData, onChange, key, defaults[key]); };
+
+  function helpFor(key: string) {
+    if (!filterId) return undefined;
+    const doc = getParamDoc(filterId, key);
+    if (!doc) return undefined;
+    return <HelpPopover><ParamHelp doc={doc} /></HelpPopover>;
+  }
 
   // Skip widgets we can't render as standalone fields
   const skipWidgets = new Set(['simplifierRulesEditor']);
@@ -127,6 +137,7 @@ export function GenericEditor({ formData, onChange, defaults, schema }: EditorPr
           }}
           dirty={dirty}
           onReset={onReset}
+          help={helpFor(key)}
         />
       );
     }
@@ -141,6 +152,7 @@ export function GenericEditor({ formData, onChange, defaults, schema }: EditorPr
             onChange={(v) => s(key, v)}
             dirty={dirty}
             onReset={onReset}
+            help={helpFor(key)}
           />
         );
       case 'integer':
@@ -155,6 +167,7 @@ export function GenericEditor({ formData, onChange, defaults, schema }: EditorPr
             max={prop.maximum}
             dirty={dirty}
             onReset={onReset}
+            help={helpFor(key)}
           />
         );
       case 'string':
@@ -171,6 +184,7 @@ export function GenericEditor({ formData, onChange, defaults, schema }: EditorPr
               mono
               dirty={dirty}
               onReset={onReset}
+              help={helpFor(key)}
             />
           );
         }
@@ -182,6 +196,7 @@ export function GenericEditor({ formData, onChange, defaults, schema }: EditorPr
             onChange={(v) => s(key, v)}
             dirty={dirty}
             onReset={onReset}
+            help={helpFor(key)}
           />
         );
       }

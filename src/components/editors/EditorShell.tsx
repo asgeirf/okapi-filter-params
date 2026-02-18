@@ -14,6 +14,7 @@ export interface EditorProps {
   onChange: (data: Record<string, unknown>) => void;
   defaults?: Record<string, unknown>;
   schema?: Record<string, unknown>;
+  filterId?: string;
 }
 
 // Check if a field value differs from its default
@@ -114,6 +115,7 @@ export function BoolField({
   indent,
   dirty,
   onReset,
+  help,
 }: {
   label: string;
   description?: string;
@@ -123,6 +125,7 @@ export function BoolField({
   indent?: boolean;
   dirty?: boolean;
   onReset?: () => void;
+  help?: ReactNode;
 }) {
   return (
     <div className={`flex items-center gap-2 py-1.5 ${indent ? 'ml-6' : ''} ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
@@ -133,7 +136,10 @@ export function BoolField({
         disabled={disabled}
       />
       <div className="flex-1">
-        <Label className={disabled ? 'text-muted-foreground' : ''}>{label}</Label>
+        <span className="inline-flex items-center gap-1">
+          <Label className={disabled ? 'text-muted-foreground' : ''}>{label}</Label>
+          {help}
+        </span>
         {description && <p className="text-xs text-muted-foreground">{description}</p>}
       </div>
       <DirtyDot dirty={dirty} />
@@ -151,6 +157,7 @@ export function TextField({
   indent,
   dirty,
   onReset,
+  help,
 }: {
   label: string;
   value: string;
@@ -161,12 +168,14 @@ export function TextField({
   indent?: boolean;
   dirty?: boolean;
   onReset?: () => void;
+  help?: ReactNode;
 }) {
   return (
     <div className={`py-1.5 ${indent ? 'ml-6' : ''} ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
       <div className="flex items-center gap-1">
         <FieldResetButton dirty={dirty} onReset={onReset} />
         <Label className={`flex-1 ${disabled ? 'text-muted-foreground' : ''}`}>{label}</Label>
+        {help}
         <DirtyDot dirty={dirty} />
       </div>
       <Input
@@ -189,6 +198,7 @@ export function TextAreaField({
   mono,
   dirty,
   onReset,
+  help,
 }: {
   label: string;
   value: string;
@@ -198,12 +208,14 @@ export function TextAreaField({
   mono?: boolean;
   dirty?: boolean;
   onReset?: () => void;
+  help?: ReactNode;
 }) {
   return (
     <div className={`py-1.5 ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
       <div className="flex items-center gap-1">
         <FieldResetButton dirty={dirty} onReset={onReset} />
         <Label className={`flex-1 ${disabled ? 'text-muted-foreground' : ''}`}>{label}</Label>
+        {help}
         <DirtyDot dirty={dirty} />
       </div>
       <Textarea
@@ -227,6 +239,7 @@ export function NumberField({
   indent,
   dirty,
   onReset,
+  help,
 }: {
   label: string;
   value: number;
@@ -237,12 +250,14 @@ export function NumberField({
   indent?: boolean;
   dirty?: boolean;
   onReset?: () => void;
+  help?: ReactNode;
 }) {
   return (
     <div className={`py-1.5 ${indent ? 'ml-6' : ''} ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
       <div className="flex items-center gap-1">
         <FieldResetButton dirty={dirty} onReset={onReset} />
         <Label className={`flex-1 ${disabled ? 'text-muted-foreground' : ''}`}>{label}</Label>
+        {help}
         <DirtyDot dirty={dirty} />
       </div>
       <Input
@@ -267,6 +282,7 @@ export function SelectField({
   indent,
   dirty,
   onReset,
+  help,
 }: {
   label: string;
   value: string | number;
@@ -276,12 +292,14 @@ export function SelectField({
   indent?: boolean;
   dirty?: boolean;
   onReset?: () => void;
+  help?: ReactNode;
 }) {
   return (
     <div className={`py-1.5 ${indent ? 'ml-6' : ''} ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
       <div className="flex items-center gap-1">
         <FieldResetButton dirty={dirty} onReset={onReset} />
         <Label className={`flex-1 ${disabled ? 'text-muted-foreground' : ''}`}>{label}</Label>
+        {help}
         <DirtyDot dirty={dirty} />
       </div>
       <Select
@@ -305,6 +323,7 @@ export function RadioGroup({
   disabled,
   dirty,
   onReset,
+  help,
 }: {
   label?: string;
   value: string | number | boolean;
@@ -313,6 +332,7 @@ export function RadioGroup({
   disabled?: boolean;
   dirty?: boolean;
   onReset?: () => void;
+  help?: ReactNode;
 }) {
   return (
     <div className={`py-1.5 ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
@@ -320,6 +340,7 @@ export function RadioGroup({
         <div className="flex items-center gap-1 mb-1">
           <FieldResetButton dirty={dirty} onReset={onReset} />
           <Label className="flex-1">{label}</Label>
+          {help}
           <DirtyDot dirty={dirty} />
         </div>
       )}
