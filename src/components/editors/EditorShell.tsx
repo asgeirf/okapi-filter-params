@@ -35,13 +35,10 @@ function FieldResetButton({ dirty, onReset }: { dirty?: boolean; onReset?: () =>
   );
 }
 
-// Dirty indicator dot + reset button combo for field headers
-function DirtyIndicators({ dirty, onReset }: { dirty?: boolean; onReset?: () => void }) {
+// Dirty indicator dot (right side of field)
+function DirtyDot({ dirty }: { dirty?: boolean }) {
   return (
-    <>
-      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dirty ? 'bg-amber-500' : 'invisible'}`} title={dirty ? 'Modified' : undefined} />
-      <FieldResetButton dirty={dirty} onReset={onReset} />
-    </>
+    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dirty ? 'bg-amber-500' : 'invisible'}`} title={dirty ? 'Modified' : undefined} />
   );
 }
 
@@ -124,6 +121,7 @@ export function BoolField({
 }) {
   return (
     <div className={`flex items-center gap-2 py-1.5 ${indent ? 'ml-6' : ''} ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
+      <FieldResetButton dirty={dirty} onReset={onReset} />
       <Switch
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
@@ -133,7 +131,7 @@ export function BoolField({
         <Label className={disabled ? 'text-muted-foreground' : ''}>{label}</Label>
         {description && <p className="text-xs text-muted-foreground">{description}</p>}
       </div>
-      <DirtyIndicators dirty={dirty} onReset={onReset} />
+      <DirtyDot dirty={dirty} />
     </div>
   );
 }
@@ -162,8 +160,9 @@ export function TextField({
   return (
     <div className={`py-1.5 ${indent ? 'ml-6' : ''} ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
       <div className="flex items-center gap-1">
+        <FieldResetButton dirty={dirty} onReset={onReset} />
         <Label className={`flex-1 ${disabled ? 'text-muted-foreground' : ''}`}>{label}</Label>
-        <DirtyIndicators dirty={dirty} onReset={onReset} />
+        <DirtyDot dirty={dirty} />
       </div>
       <Input
         value={value}
@@ -198,8 +197,9 @@ export function TextAreaField({
   return (
     <div className={`py-1.5 ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
       <div className="flex items-center gap-1">
+        <FieldResetButton dirty={dirty} onReset={onReset} />
         <Label className={`flex-1 ${disabled ? 'text-muted-foreground' : ''}`}>{label}</Label>
-        <DirtyIndicators dirty={dirty} onReset={onReset} />
+        <DirtyDot dirty={dirty} />
       </div>
       <Textarea
         value={value}
@@ -236,8 +236,9 @@ export function NumberField({
   return (
     <div className={`py-1.5 ${indent ? 'ml-6' : ''} ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
       <div className="flex items-center gap-1">
+        <FieldResetButton dirty={dirty} onReset={onReset} />
         <Label className={`flex-1 ${disabled ? 'text-muted-foreground' : ''}`}>{label}</Label>
-        <DirtyIndicators dirty={dirty} onReset={onReset} />
+        <DirtyDot dirty={dirty} />
       </div>
       <Input
         type="number"
@@ -274,8 +275,9 @@ export function SelectField({
   return (
     <div className={`py-1.5 ${indent ? 'ml-6' : ''} ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
       <div className="flex items-center gap-1">
+        <FieldResetButton dirty={dirty} onReset={onReset} />
         <Label className={`flex-1 ${disabled ? 'text-muted-foreground' : ''}`}>{label}</Label>
-        <DirtyIndicators dirty={dirty} onReset={onReset} />
+        <DirtyDot dirty={dirty} />
       </div>
       <Select
         value={String(value)}
@@ -311,8 +313,9 @@ export function RadioGroup({
     <div className={`py-1.5 ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
       {label && (
         <div className="flex items-center gap-1 mb-1">
+          <FieldResetButton dirty={dirty} onReset={onReset} />
           <Label className="flex-1">{label}</Label>
-          <DirtyIndicators dirty={dirty} onReset={onReset} />
+          <DirtyDot dirty={dirty} />
         </div>
       )}
       <div className="space-y-1">
