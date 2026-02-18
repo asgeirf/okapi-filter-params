@@ -333,6 +333,13 @@ export function getDefaults(schema: FilterSchema): Record<string, unknown> {
   for (const [key, prop] of Object.entries(schema.properties)) {
     if (prop.default !== undefined) {
       defaults[key] = prop.default;
+    } else {
+      // Infer a sensible default from the schema type
+      switch (prop.type) {
+        case 'boolean': defaults[key] = false; break;
+        case 'string': defaults[key] = ''; break;
+        case 'integer': case 'number': defaults[key] = 0; break;
+      }
     }
   }
   return defaults;
