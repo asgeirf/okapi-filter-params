@@ -322,9 +322,10 @@ export function ConfigurePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterId, okapiVersion]);
 
+  // Output shows diff from schema defaults (so preset values appear in output)
   const sparseConfig = useMemo(() => 
-    getSparseConfig(formData, defaults), 
-    [formData, defaults]
+    getSparseConfig(formData, schemaDefaults), 
+    [formData, schemaDefaults]
   );
 
   const configOutputText = useMemo(() => 
@@ -493,6 +494,7 @@ export function ConfigurePage() {
                         key={cfg.configId}
                         variant={selectedConfigId === cfg.configId ? 'default' : 'outline'}
                         size="sm"
+                        className={selectedConfigId === cfg.configId ? 'bg-blue-600 text-white hover:bg-blue-700 ring-2 ring-blue-300' : ''}
                         onClick={() => handleLoadPreset(cfg.configId)}
                         title={cfg.description || cfg.name}
                       >
