@@ -59,16 +59,8 @@ export function ElementRulesEditor({ formData, onChange, defaults, fieldKey }: P
   const dirty = isDirty(formData, defaults, fieldKey);
   const onReset = () => { if (defaults && fieldKey in defaults) set(formData, onChange, fieldKey, defaults[fieldKey]); };
 
-  const sortedKeys = Object.keys(elements).sort((a, b) => {
-    // Sort by rule type priority: TEXTUNIT first, then INLINE, then others
-    const ra = elements[a]?.ruleTypes?.[0] || '';
-    const rb = elements[b]?.ruleTypes?.[0] || '';
-    const order = ['TEXTUNIT', 'INLINE', 'ATTRIBUTES_ONLY', 'GROUP', 'EXCLUDE', 'INCLUDE'];
-    const ia = order.indexOf(ra);
-    const ib = order.indexOf(rb);
-    if (ia !== ib) return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
-    return a.localeCompare(b);
-  });
+  // Preserve original insertion order from the loaded preset/YAML
+  const elementKeys = Object.keys(elements);
 
   const toggle = (key: string) => {
     setExpanded(prev => {
@@ -79,13 +71,19 @@ export function ElementRulesEditor({ formData, onChange, defaults, fieldKey }: P
   };
 
   const updateElement = (name: string, rule: ElementRule) => {
-    const updated = { ...elements, [name]: rule };
+    // Rebuild in same key order to preserve insertion order
+    const updated: Record<string, ElementRule> = {};
+    for (const k of Object.keys(elements)) {
+      updated[k] = k === name ? rule : elements[k];
+    }
     set(formData, onChange, fieldKey, updated);
   };
 
   const removeElement = (name: string) => {
-    const updated = { ...elements };
-    delete updated[name];
+    const updated: Record<string, ElementRule> = {};
+    for (const k of Object.keys(elements)) {
+      if (k !== name) updated[k] = elements[k];
+    }
     set(formData, onChange, fieldKey, updated);
   };
 
@@ -110,7 +108,7 @@ export function ElementRulesEditor({ formData, onChange, defaults, fieldKey }: P
       <div className="flex items-center gap-2">
         <FieldResetButton visible={dirty} onReset={onReset} />
         <span className="text-sm font-medium">Element Rules</span>
-        <span className="text-xs text-muted-foreground">({sortedKeys.length} elements)</span>
+        <span className="text-xs text-muted-foreground">({elementKeys.length} elements)</span>
         <div className="flex-1" />
         <DirtyDot dirty={dirty} />
       </div>
@@ -128,7 +126,7 @@ export function ElementRulesEditor({ formData, onChange, defaults, fieldKey }: P
             </tr>
           </thead>
           <tbody>
-            {sortedKeys.map(name => {
+            {elementKeys.map(name => {
               const rule = elements[name];
               const isExpanded = expanded.has(name);
               const isModified = JSON.stringify(rule) !== JSON.stringify(defaultElements[name]);

@@ -46,15 +46,21 @@ export function AttributeRulesEditor({ formData, onChange, defaults, fieldKey }:
   const dirty = isDirty(formData, defaults, fieldKey);
   const onReset = () => { if (defaults && fieldKey in defaults) set(formData, onChange, fieldKey, defaults[fieldKey]); };
 
-  const sortedKeys = Object.keys(attributes).sort();
+  const attrKeys = Object.keys(attributes);
 
   const updateAttr = (name: string, rule: AttributeRule) => {
-    set(formData, onChange, fieldKey, { ...attributes, [name]: rule });
+    const updated: Record<string, AttributeRule> = {};
+    for (const k of Object.keys(attributes)) {
+      updated[k] = k === name ? rule : attributes[k];
+    }
+    set(formData, onChange, fieldKey, updated);
   };
 
   const removeAttr = (name: string) => {
-    const updated = { ...attributes };
-    delete updated[name];
+    const updated: Record<string, AttributeRule> = {};
+    for (const k of Object.keys(attributes)) {
+      if (k !== name) updated[k] = attributes[k];
+    }
     set(formData, onChange, fieldKey, updated);
   };
 
@@ -77,7 +83,7 @@ export function AttributeRulesEditor({ formData, onChange, defaults, fieldKey }:
       <div className="flex items-center gap-2">
         <FieldResetButton visible={dirty} onReset={onReset} />
         <span className="text-sm font-medium">Global Attribute Rules</span>
-        <span className="text-xs text-muted-foreground">({sortedKeys.length} attributes)</span>
+        <span className="text-xs text-muted-foreground">({attrKeys.length} attributes)</span>
         <div className="flex-1" />
         <DirtyDot dirty={dirty} />
       </div>
@@ -93,7 +99,7 @@ export function AttributeRulesEditor({ formData, onChange, defaults, fieldKey }:
             </tr>
           </thead>
           <tbody>
-            {sortedKeys.map(name => {
+            {attrKeys.map(name => {
               const rule = attributes[name];
               return (
                 <tr key={name} className="border-t hover:bg-muted/30">
