@@ -1,7 +1,8 @@
-import { type EditorProps, TabPanel, FieldGroup, BoolField, CodeFinderSection, val, set } from './EditorShell';
+import { type EditorProps, TabPanel, FieldGroup, BoolField, CodeFinderSection, val, set, isDirty } from './EditorShell';
 
-export function TsEditor({ formData, onChange }: EditorProps) {
+export function TsEditor({ formData, onChange, defaults }: EditorProps) {
   const s = (k: string, v: unknown) => set(formData, onChange, k, v);
+  const d = (key: string) => isDirty(formData, defaults, key);
 
   const optionsTab = (
     <FieldGroup label="Characters">
@@ -9,6 +10,7 @@ export function TsEditor({ formData, onChange }: EditorProps) {
         label="Decode byte values"
         checked={val(formData, 'decodeByteValues', false)}
         onChange={(v) => s('decodeByteValues', v)}
+        dirty={d('decodeByteValues')}
       />
     </FieldGroup>
   );
@@ -20,6 +22,7 @@ export function TsEditor({ formData, onChange }: EditorProps) {
         onChange={onChange}
         useCodeFinderKey="useCodeFinder"
         codeFinderKey="codeFinderRules"
+            defaults={defaults}
       />
     </FieldGroup>
   );

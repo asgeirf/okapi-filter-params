@@ -11,6 +11,13 @@ import { Textarea } from '@/components/ui/textarea';
 export interface EditorProps {
   formData: Record<string, unknown>;
   onChange: (data: Record<string, unknown>) => void;
+  defaults?: Record<string, unknown>;
+}
+
+// Check if a field value differs from its default
+export function isDirty(formData: Record<string, unknown>, defaults: Record<string, unknown> | undefined, key: string): boolean {
+  if (!defaults) return false;
+  return JSON.stringify(formData[key]) !== JSON.stringify(defaults[key]);
 }
 
 // --- Tab panel ---
@@ -78,6 +85,7 @@ export function BoolField({
   onChange,
   disabled,
   indent,
+  dirty,
 }: {
   label: string;
   description?: string;
@@ -85,18 +93,20 @@ export function BoolField({
   onChange: (v: boolean) => void;
   disabled?: boolean;
   indent?: boolean;
+  dirty?: boolean;
 }) {
   return (
-    <div className={`flex items-center gap-2 py-1.5 ${indent ? 'ml-6' : ''}`}>
+    <div className={`flex items-center gap-2 py-1.5 ${indent ? 'ml-6' : ''} ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
       <Switch
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
         disabled={disabled}
       />
-      <div>
+      <div className="flex-1">
         <Label className={disabled ? 'text-muted-foreground' : ''}>{label}</Label>
         {description && <p className="text-xs text-muted-foreground">{description}</p>}
       </div>
+      {dirty && <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" title="Modified" />}
     </div>
   );
 }
@@ -109,6 +119,7 @@ export function TextField({
   placeholder,
   mono,
   indent,
+  dirty,
 }: {
   label: string;
   value: string;
@@ -117,10 +128,14 @@ export function TextField({
   placeholder?: string;
   mono?: boolean;
   indent?: boolean;
+  dirty?: boolean;
 }) {
   return (
-    <div className={`py-1.5 ${indent ? 'ml-6' : ''}`}>
-      <Label className={disabled ? 'text-muted-foreground' : ''}>{label}</Label>
+    <div className={`py-1.5 ${indent ? 'ml-6' : ''} ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
+      <div className="flex items-center gap-1">
+        <Label className={disabled ? 'text-muted-foreground' : ''}>{label}</Label>
+        {dirty && <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" title="Modified" />}
+      </div>
       <Input
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -139,6 +154,7 @@ export function TextAreaField({
   disabled,
   rows,
   mono,
+  dirty,
 }: {
   label: string;
   value: string;
@@ -146,10 +162,14 @@ export function TextAreaField({
   disabled?: boolean;
   rows?: number;
   mono?: boolean;
+  dirty?: boolean;
 }) {
   return (
-    <div className="py-1.5">
-      <Label className={disabled ? 'text-muted-foreground' : ''}>{label}</Label>
+    <div className={`py-1.5 ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
+      <div className="flex items-center gap-1">
+        <Label className={disabled ? 'text-muted-foreground' : ''}>{label}</Label>
+        {dirty && <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" title="Modified" />}
+      </div>
       <Textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -169,6 +189,7 @@ export function NumberField({
   min,
   max,
   indent,
+  dirty,
 }: {
   label: string;
   value: number;
@@ -177,10 +198,14 @@ export function NumberField({
   min?: number;
   max?: number;
   indent?: boolean;
+  dirty?: boolean;
 }) {
   return (
-    <div className={`py-1.5 ${indent ? 'ml-6' : ''}`}>
-      <Label className={disabled ? 'text-muted-foreground' : ''}>{label}</Label>
+    <div className={`py-1.5 ${indent ? 'ml-6' : ''} ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
+      <div className="flex items-center gap-1">
+        <Label className={disabled ? 'text-muted-foreground' : ''}>{label}</Label>
+        {dirty && <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" title="Modified" />}
+      </div>
       <Input
         type="number"
         value={value}
@@ -201,6 +226,7 @@ export function SelectField({
   onChange,
   disabled,
   indent,
+  dirty,
 }: {
   label: string;
   value: string | number;
@@ -208,10 +234,14 @@ export function SelectField({
   onChange: (v: string) => void;
   disabled?: boolean;
   indent?: boolean;
+  dirty?: boolean;
 }) {
   return (
-    <div className={`py-1.5 ${indent ? 'ml-6' : ''}`}>
-      <Label className={disabled ? 'text-muted-foreground' : ''}>{label}</Label>
+    <div className={`py-1.5 ${indent ? 'ml-6' : ''} ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
+      <div className="flex items-center gap-1">
+        <Label className={disabled ? 'text-muted-foreground' : ''}>{label}</Label>
+        {dirty && <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" title="Modified" />}
+      </div>
       <Select
         value={String(value)}
         onChange={(e) => onChange(e.target.value)}
@@ -231,16 +261,23 @@ export function RadioGroup({
   options,
   onChange,
   disabled,
+  dirty,
 }: {
   label?: string;
   value: string | number | boolean;
   options: { value: string | number | boolean; label: string; description?: string }[];
   onChange: (v: string) => void;
   disabled?: boolean;
+  dirty?: boolean;
 }) {
   return (
-    <div className="py-1.5">
-      {label && <Label className="mb-1">{label}</Label>}
+    <div className={`py-1.5 ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
+      {label && (
+        <div className="flex items-center gap-1 mb-1">
+          <Label>{label}</Label>
+          {dirty && <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" title="Modified" />}
+        </div>
+      )}
       <div className="space-y-1">
         {options.map(opt => (
           <label key={String(opt.value)} className={`flex items-start gap-2 cursor-pointer ${disabled ? 'opacity-50' : ''}`}>
@@ -287,11 +324,13 @@ export function CodeFinderSection({
   onChange,
   useCodeFinderKey,
   codeFinderKey,
+  defaults,
 }: {
   formData: Record<string, unknown>;
   onChange: (d: Record<string, unknown>) => void;
   useCodeFinderKey: string;
   codeFinderKey: string;
+  defaults?: Record<string, unknown>;
 }) {
   const enabled = val(formData, useCodeFinderKey, false);
   const rules = val(formData, codeFinderKey, '');
@@ -302,6 +341,7 @@ export function CodeFinderSection({
         label="Has inline codes as defined below"
         checked={enabled}
         onChange={(v) => set(formData, onChange, useCodeFinderKey, v)}
+        dirty={isDirty(formData, defaults, useCodeFinderKey)}
       />
       <div className={enabled ? '' : 'opacity-50 pointer-events-none'}>
         <TextAreaField
@@ -310,6 +350,7 @@ export function CodeFinderSection({
           onChange={(v) => set(formData, onChange, codeFinderKey, v)}
           mono
           rows={5}
+          dirty={isDirty(formData, defaults, codeFinderKey)}
         />
       </div>
     </div>

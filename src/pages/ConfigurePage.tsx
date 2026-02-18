@@ -307,7 +307,40 @@ export function ConfigurePage() {
   useEffect(() => {
     setSelectedConfigId(null);
     setPresetBaseline(null);
+    const presetParam = searchParams.get('preset');
     const configParam = searchParams.get('config');
+
+    // Restore preset from URL if available
+    if (presetParam && configurations.length > 0) {
+      const preset = configurations.find(c => c.configId === presetParam);
+      if (preset) {
+        setSelectedConfigId(presetParam);
+        let targetDefaults = filter ? getDefaults(filter.schema) : {};
+        if (preset.schemaRef) {
+          const targetFilter = getFilterDataForConfig(filterId || '', preset, okapiVersion);
+          if (targetFilter) {
+            targetDefaults = getDefaults(targetFilter.schema);
+          }
+        }
+        const merged = { ...targetDefaults };
+        if (preset.parameters) {
+          for (const [key, value] of Object.entries(preset.parameters)) {
+            merged[key] = value;
+          }
+        }
+        // Apply any additional config overrides on top of preset
+        if (configParam) {
+          try {
+            const decoded = JSON.parse(atob(configParam));
+            Object.assign(merged, decoded);
+          } catch { /* ignore */ }
+        }
+        setPresetBaseline({ ...targetDefaults, ...(preset.parameters || {}) });
+        setFormData(merged);
+        return;
+      }
+    }
+
     if (configParam) {
       try {
         const decoded = JSON.parse(atob(configParam));
@@ -344,11 +377,12 @@ export function ConfigurePage() {
     const base = window.location.origin + window.location.pathname + window.location.hash.split('?')[0];
     const params = new URLSearchParams();
     params.set('okapi', okapiVersion);
+    if (selectedConfigId) params.set('preset', selectedConfigId);
     if (hasConfig) params.set('config', btoa(JSON.stringify(sparseConfig)));
     navigator.clipboard.writeText(`${base}?${params.toString()}`);
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2000);
-  }, [sparseConfig, okapiVersion]);
+  }, [sparseConfig, okapiVersion, selectedConfigId]);
 
   const handleReset = useCallback(() => {
     setPresetBaseline(null);
@@ -381,7 +415,14 @@ export function ConfigurePage() {
     // Preset values become the new baseline — nothing shows as modified
     setPresetBaseline(merged);
     setFormData(merged);
-  }, [configurations, schemaDefaults, filterId, okapiVersion]);
+    // Persist preset in URL
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set('preset', configId);
+      next.delete('config');
+      return next;
+    });
+  }, [configurations, schemaDefaults, filterId, okapiVersion, setSearchParams]);
 
   const handleResetField = useCallback((fieldName: string) => {
     setFormData(prev => ({
@@ -551,7 +592,7 @@ export function ConfigurePage() {
                   )}
 
                   {editorAvailable && editorMode === 'editor' ? (
-                    <EditorComponent formData={formData} onChange={setFormData} />
+                    <EditorComponent formData={formData} onChange={setFormData} defaults={defaults} />
                   ) : Object.keys(schema.properties).length === 0 ? (
               <Card>
                 <CardContent className="py-8">

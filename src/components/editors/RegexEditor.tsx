@@ -1,14 +1,15 @@
-import { type EditorProps, TabPanel, FieldGroup, BoolField, TextField, CodeFinderSection, val, set } from './EditorShell';
+import { type EditorProps, TabPanel, FieldGroup, BoolField, TextField, CodeFinderSection, val, set, isDirty } from './EditorShell';
 
-export function RegexEditor({ formData, onChange }: EditorProps) {
+export function RegexEditor({ formData, onChange, defaults }: EditorProps) {
   const s = (k: string, v: unknown) => set(formData, onChange, k, v);
+  const d = (key: string) => isDirty(formData, defaults, key);
 
   const rulesTab = (
     <div className="space-y-2">
       <FieldGroup label="Regex Options">
-        <BoolField label="Case insensitive" checked={val(formData, 'regexCaseInsensitive', false)} onChange={(v) => s('regexCaseInsensitive', v)} />
-        <BoolField label="Dot matches all (DOTALL)" checked={val(formData, 'regexDotAll', false)} onChange={(v) => s('regexDotAll', v)} />
-        <BoolField label="Multiline" checked={val(formData, 'regexMultiline', false)} onChange={(v) => s('regexMultiline', v)} />
+        <BoolField label="Case insensitive" checked={val(formData, 'regexCaseInsensitive', false)} onChange={(v) => s('regexCaseInsensitive', v)} dirty={d('regexCaseInsensitive')} />
+        <BoolField label="Dot matches all (DOTALL)" checked={val(formData, 'regexDotAll', false)} onChange={(v) => s('regexDotAll', v)} dirty={d('regexDotAll')} />
+        <BoolField label="Multiline" checked={val(formData, 'regexMultiline', false)} onChange={(v) => s('regexMultiline', v)} dirty={d('regexMultiline')} />
       </FieldGroup>
 
       <FieldGroup label="Inline Codes">
@@ -17,6 +18,7 @@ export function RegexEditor({ formData, onChange }: EditorProps) {
           onChange={onChange}
           useCodeFinderKey="useCodeFinder"
           codeFinderKey="codeFinderRules"
+            defaults={defaults}
         />
       </FieldGroup>
     </div>
@@ -25,13 +27,13 @@ export function RegexEditor({ formData, onChange }: EditorProps) {
   const optionsTab = (
     <div className="space-y-2">
       <FieldGroup label="String Markers">
-        <TextField label="Start marker" value={val(formData, 'startString', '')} onChange={(v) => s('startString', v)} mono />
-        <TextField label="End marker" value={val(formData, 'endString', '')} onChange={(v) => s('endString', v)} mono />
+        <TextField label="Start marker" value={val(formData, 'startString', '')} onChange={(v) => s('startString', v)} mono dirty={d('startString')} />
+        <TextField label="End marker" value={val(formData, 'endString', '')} onChange={(v) => s('endString', v)} mono dirty={d('endString')} />
       </FieldGroup>
 
       <FieldGroup label="Escaping">
-        <BoolField label="Use backslash escaping" checked={val(formData, 'useBackslashEscape', false)} onChange={(v) => s('useBackslashEscape', v)} />
-        <BoolField label="Use double-char escaping" checked={val(formData, 'useDoubleCharEscape', false)} onChange={(v) => s('useDoubleCharEscape', v)} />
+        <BoolField label="Use backslash escaping" checked={val(formData, 'useBackslashEscape', false)} onChange={(v) => s('useBackslashEscape', v)} dirty={d('useBackslashEscape')} />
+        <BoolField label="Use double-char escaping" checked={val(formData, 'useDoubleCharEscape', false)} onChange={(v) => s('useDoubleCharEscape', v)} dirty={d('useDoubleCharEscape')} />
       </FieldGroup>
 
       <FieldGroup label="Content">
@@ -40,12 +42,14 @@ export function RegexEditor({ formData, onChange }: EditorProps) {
           value={val(formData, 'mimeType', 'text/plain')}
           onChange={(v) => s('mimeType', v)}
           placeholder="text/plain"
+          dirty={d('mimeType')}
         />
         <TextField
           label="Subfilter ID"
           value={val(formData, 'subfilter', '')}
           onChange={(v) => s('subfilter', v)}
           placeholder="Configuration identifier (empty for none)"
+          dirty={d('subfilter')}
         />
       </FieldGroup>
     </div>

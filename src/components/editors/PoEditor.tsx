@@ -1,7 +1,8 @@
-import { type EditorProps, TabPanel, FieldGroup, BoolField, TextField, RadioGroup, CodeFinderSection, val, set } from './EditorShell';
+import { type EditorProps, TabPanel, FieldGroup, BoolField, TextField, RadioGroup, CodeFinderSection, val, set, isDirty } from './EditorShell';
 
-export function PoEditor({ formData, onChange }: EditorProps) {
+export function PoEditor({ formData, onChange, defaults }: EditorProps) {
   const s = (k: string, v: unknown) => set(formData, onChange, k, v);
+  const d = (key: string) => isDirty(formData, defaults, key);
   const bilingualMode = val(formData, 'bilingualMode', true);
 
   const optionsTab = (
@@ -10,11 +11,13 @@ export function PoEditor({ formData, onChange }: EditorProps) {
         label="Protect approved entries"
         checked={val(formData, 'protectApproved', true)}
         onChange={(v) => s('protectApproved', v)}
+        dirty={d('protectApproved')}
       />
       <BoolField
         label="Include message context in note"
         checked={val(formData, 'includeMsgContextInNote', false)}
         onChange={(v) => s('includeMsgContextInNote', v)}
+        dirty={d('includeMsgContextInNote')}
       />
 
       <FieldGroup label="Mode">
@@ -40,6 +43,7 @@ export function PoEditor({ formData, onChange }: EditorProps) {
             checked={val(formData, 'makeID', false)}
             onChange={(v) => s('makeID', v)}
             indent
+            dirty={d('makeID')}
           />
         )}
       </FieldGroup>
@@ -49,6 +53,7 @@ export function PoEditor({ formData, onChange }: EditorProps) {
         value={val(formData, 'subfilter', '')}
         onChange={(v) => s('subfilter', v)}
         placeholder="Configuration identifier of the sub-filter"
+        dirty={d('subfilter')}
       />
     </div>
   );
@@ -60,6 +65,7 @@ export function PoEditor({ formData, onChange }: EditorProps) {
         onChange={onChange}
         useCodeFinderKey="useCodeFinder"
         codeFinderKey="codeFinderRules"
+            defaults={defaults}
       />
     </FieldGroup>
   );
