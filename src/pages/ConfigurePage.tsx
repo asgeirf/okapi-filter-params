@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { OkapiVersionSelector } from '@/components/OkapiVersionSelector';
 import { useOkapiVersion } from '@/components/OkapiVersionContext';
 import { getFilterById, getDefaults, getSparseConfig, getFilterVersions, getConfigurations, getFilterDataForConfig, type FilterSchema, type EditorHints, type EditorHintGroup } from '@/data';
-import { formatConfig, outputFormats, type OutputFormat } from '@/lib/outputFormats';
+import { formatConfig, getOutputFormats, type OutputFormat, type SerializationFormat } from '@/lib/outputFormats';
 import { getEditor } from '@/components/editors';
 import { 
   TagListWidget, 
@@ -361,9 +361,17 @@ export function ConfigurePage() {
     [formData, schemaDefaults]
   );
 
+  // Determine the native serialization format from the schema's x-filter metadata
+  const activeSchema = (activeFilter ?? filter)?.schema;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const serializationFormat: SerializationFormat = 
+    (activeSchema as any)?.['x-filter']?.serializationFormat === 'yaml'
+      ? 'yaml' : 'stringParameters';
+  const outputFormats = getOutputFormats(serializationFormat);
+
   const configOutputText = useMemo(() => 
-    formatConfig(sparseConfig, outputFormat), 
-    [sparseConfig, outputFormat]
+    formatConfig(sparseConfig, outputFormat, serializationFormat), 
+    [sparseConfig, outputFormat, serializationFormat]
   );
 
   const handleCopy = useCallback(() => {

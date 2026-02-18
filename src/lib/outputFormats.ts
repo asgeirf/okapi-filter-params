@@ -1,6 +1,7 @@
 import yaml from 'js-yaml';
 
 export type OutputFormat = 'json' | 'yaml' | 'fprm';
+export type SerializationFormat = 'stringParameters' | 'yaml';
 
 /**
  * Serialize sparse config to JSON string.
@@ -72,28 +73,43 @@ export function toFprm(config: Record<string, unknown>): string {
 
 /**
  * Format config in the specified output format.
+ * For .fprm, uses the filter's native serialization format (key=value or YAML).
  */
-export function formatConfig(config: Record<string, unknown>, format: OutputFormat): string {
+export function formatConfig(
+  config: Record<string, unknown>,
+  format: OutputFormat,
+  serializationFormat: SerializationFormat = 'stringParameters',
+): string {
   switch (format) {
     case 'json': return toJson(config);
     case 'yaml': return toYaml(config);
-    case 'fprm': return toFprm(config);
+    case 'fprm':
+      return serializationFormat === 'yaml' ? toYaml(config) : toFprm(config);
   }
 }
 
 /**
  * Get file extension for an output format.
  */
-export function formatExtension(format: OutputFormat): string {
+export function formatExtension(
+  format: OutputFormat,
+  serializationFormat: SerializationFormat = 'stringParameters',
+): string {
   switch (format) {
     case 'json': return '.json';
     case 'yaml': return '.yml';
-    case 'fprm': return '.fprm';
+    case 'fprm':
+      return serializationFormat === 'yaml' ? '.yml' : '.fprm';
   }
 }
 
-export const outputFormats: { value: OutputFormat; label: string }[] = [
-  { value: 'json', label: 'JSON' },
-  { value: 'yaml', label: 'YAML' },
-  { value: 'fprm', label: '.fprm' },
-];
+/**
+ * Get the output format options, with .fprm label adjusted for YAML-based filters.
+ */
+export function getOutputFormats(serializationFormat: SerializationFormat = 'stringParameters') {
+  return [
+    { value: 'json' as OutputFormat, label: 'JSON' },
+    { value: 'yaml' as OutputFormat, label: 'YAML' },
+    { value: 'fprm' as OutputFormat, label: serializationFormat === 'yaml' ? '.fprm (YAML)' : '.fprm' },
+  ];
+}
