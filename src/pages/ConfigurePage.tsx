@@ -733,9 +733,7 @@ export function ConfigurePage() {
               </CardHeader>
               <CardContent>
                 <pre className="bg-muted p-4 rounded-md text-sm overflow-auto max-h-96 font-mono">
-                  {configOutputText || (
-                    <span className="text-muted-foreground italic">Using all default values</span>
-                  )}
+                  {configOutputText}
                 </pre>
               </CardContent>
             </Card>
