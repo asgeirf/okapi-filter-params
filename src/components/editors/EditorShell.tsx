@@ -23,12 +23,13 @@ export function isDirty(formData: Record<string, unknown>, defaults: Record<stri
 }
 
 // Reset button — always takes space, invisible when not dirty (no layout shift)
-function FieldResetButton({ dirty, onReset }: { dirty?: boolean; onReset?: () => void }) {
+export function FieldResetButton({ dirty, visible, onReset }: { dirty?: boolean; visible?: boolean; onReset?: () => void }) {
+  const show = visible ?? dirty;
   return (
     <button
       type="button"
       onClick={onReset}
-      className={`p-0.5 rounded flex-shrink-0 ${dirty && onReset ? 'text-amber-600 hover:text-amber-800 hover:bg-amber-100' : 'invisible'}`}
+      className={`p-0.5 rounded flex-shrink-0 ${show && onReset ? 'text-amber-600 hover:text-amber-800 hover:bg-amber-100' : 'invisible'}`}
       title="Reset to default"
     >
       <X className="h-3 w-3" />
@@ -37,7 +38,7 @@ function FieldResetButton({ dirty, onReset }: { dirty?: boolean; onReset?: () =>
 }
 
 // Dirty indicator dot (right side of field)
-function DirtyDot({ dirty }: { dirty?: boolean }) {
+export function DirtyDot({ dirty }: { dirty?: boolean }) {
   return (
     <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dirty ? 'bg-amber-500' : 'invisible'}`} title={dirty ? 'Modified' : undefined} />
   );

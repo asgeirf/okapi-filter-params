@@ -1,5 +1,7 @@
 import { type EditorProps, FieldGroup, BoolField, TextField, TextAreaField, NumberField, SelectField, CodeFinderSection, isDirty, val, set } from './EditorShell';
 import { Card, CardContent } from '@/components/ui/card';
+import { ElementRulesEditor } from './ElementRulesEditor';
+import { AttributeRulesEditor } from './AttributeRulesEditor';
 
 interface SchemaProperty {
   type?: string;
@@ -56,6 +58,32 @@ export function GenericEditor({ formData, onChange, defaults, schema }: EditorPr
     if (!isRenderable(key)) return null;
 
     const widget = prop['x-widget'];
+
+    // Element rules editor
+    if (widget === 'elementRulesEditor') {
+      return (
+        <ElementRulesEditor
+          key={key}
+          formData={formData}
+          onChange={onChange}
+          defaults={defaults}
+          fieldKey={key}
+        />
+      );
+    }
+
+    // Attribute rules editor
+    if (widget === 'attributeRulesEditor') {
+      return (
+        <AttributeRulesEditor
+          key={key}
+          formData={formData}
+          onChange={onChange}
+          defaults={defaults}
+          fieldKey={key}
+        />
+      );
+    }
 
     // CodeFinder: render as a section with enable toggle + rules textarea
     if (widget === 'codeFinderRules' || widget === 'codeFinder') {
