@@ -35,14 +35,30 @@ export function GenericEditor({ formData, onChange, defaults, schema }: EditorPr
 
   // Skip widgets we can't render as standalone fields
   const skipWidgets = new Set(['simplifierRulesEditor']);
+  // Internal properties that aren't user-configurable
+  const internalProps = new Set(['taggedConfig', 'editorTitle', 'path', 'data']);
+
+  function isRenderable(key: string): boolean {
+    if (internalProps.has(key)) return false;
+    const prop = properties[key];
+    if (!prop) return false;
+    const widget = prop['x-widget'];
+    if (widget && skipWidgets.has(widget)) return false;
+    // useCodeFinder booleans rendered as part of CodeFinderSection
+    if (key === 'useCodeFinder' || key.match(/^use.*CodeFinder$/)) {
+      const rulesKey = key.replace(/^use/, '').replace(/CodeFinder$/, 'codeFinderRules');
+      if (rulesKey in properties || 'codeFinderRules' in properties) return false;
+    }
+    return true;
+  }
 
   function renderField(key: string, prop: SchemaProperty) {
+    if (!isRenderable(key)) return null;
+
     const widget = prop['x-widget'];
-    if (widget && skipWidgets.has(widget)) return null;
 
     // CodeFinder: render as a section with enable toggle + rules textarea
     if (widget === 'codeFinderRules' || widget === 'codeFinder') {
-      // Find the associated useCodeFinder toggle
       const useKey = key.replace(/Rules$/, '').replace(/^codeFinder/, 'useCodeFinder');
       const hasUseKey = useKey in properties && useKey !== key;
       if (hasUseKey) {
@@ -57,13 +73,6 @@ export function GenericEditor({ formData, onChange, defaults, schema }: EditorPr
           />
         );
       }
-    }
-
-    // Skip the useCodeFinder boolean if it'll be rendered as part of CodeFinderSection
-    if (key === 'useCodeFinder' || key.match(/^use.*CodeFinder$/)) {
-      const rulesKey = key.replace(/^use/, '').replace(/CodeFinder$/, 'codeFinderRules');
-      const altRulesKey = 'codeFinderRules';
-      if (rulesKey in properties || altRulesKey in properties) return null;
     }
 
     const label = prop.description || key;
@@ -153,13 +162,13 @@ export function GenericEditor({ formData, onChange, defaults, schema }: EditorPr
 
   // Collect which fields are in groups
   const groupedFieldSet = new Set(groups.flatMap(g => g.fields));
-  const ungroupedFields = Object.keys(properties).filter(k => !groupedFieldSet.has(k));
+  const ungroupedFields = Object.keys(properties).filter(k => !groupedFieldSet.has(k) && isRenderable(k));
 
   return (
     <Card>
       <CardContent className="pt-4 space-y-4">
         {groups.map(group => {
-          const validFields = group.fields.filter(f => f in properties);
+          const validFields = group.fields.filter(f => f in properties && isRenderable(f));
           if (validFields.length === 0) return null;
           return (
             <FieldGroup key={group.id} label={group.label}>
