@@ -40,17 +40,21 @@ const bundle = docsBundle as {
   aliases?: Record<string, string>;
 };
 
+const EMPTY_LIMITATIONS = new Set(['none known.', 'none known', 'none.', 'none', 'n/a']);
+
 /**
  * Get documentation for a filter by ID.
  * Resolves aliases (e.g., okf_baseplaintext → okf_plaintext).
  */
 export function getFilterDoc(filterId: string): FilterDoc | undefined {
-  const doc = bundle.filters[filterId];
-  if (doc) return doc;
-  // Check aliases
-  const aliasTarget = bundle.aliases?.[filterId];
-  if (aliasTarget) return bundle.filters[aliasTarget];
-  return undefined;
+  const doc = bundle.filters[filterId] ?? (bundle.aliases?.[filterId] ? bundle.filters[bundle.aliases[filterId]] : undefined);
+  if (!doc) return undefined;
+  // Filter out placeholder limitation entries like "None known."
+  if (doc.limitations) {
+    const real = doc.limitations.filter(l => !EMPTY_LIMITATIONS.has(l.trim().toLowerCase()));
+    return { ...doc, limitations: real.length > 0 ? real : undefined };
+  }
+  return doc;
 }
 
 /**

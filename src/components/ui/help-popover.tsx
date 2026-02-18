@@ -33,7 +33,14 @@ export function HelpPopover({ children }: HelpPopoverProps) {
   useEffect(() => {
     if (!open || !buttonRef.current) return;
     const rect = buttonRef.current.getBoundingClientRect();
-    setPos({ top: rect.bottom + 4, left: rect.left });
+    const popoverWidth = 288; // w-72 = 18rem = 288px
+    let left = rect.left;
+    // Keep within viewport horizontally
+    if (left + popoverWidth > window.innerWidth - 8) {
+      left = window.innerWidth - popoverWidth - 8;
+    }
+    if (left < 8) left = 8;
+    setPos({ top: rect.bottom + 4, left });
   }, [open]);
 
   return (
@@ -50,8 +57,8 @@ export function HelpPopover({ children }: HelpPopoverProps) {
       {open && createPortal(
         <div
           ref={popoverRef}
-          className="fixed z-[9999] w-72 bg-popover text-popover-foreground border rounded-md shadow-md p-3 text-xs space-y-2"
-          style={{ top: pos.top, left: pos.left }}
+          className="fixed z-[9999] w-72 border rounded-md shadow-lg p-3 text-xs space-y-2"
+          style={{ top: pos.top, left: pos.left, background: 'white', color: '#1a1a1a' }}
         >
           {children}
         </div>,
