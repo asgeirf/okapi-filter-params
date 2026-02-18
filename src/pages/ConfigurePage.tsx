@@ -680,7 +680,7 @@ export function ConfigurePage() {
                         onClick={() => setOutputFormat(fmt.value)}
                         className={`px-3 py-1 text-xs font-medium transition-colors ${
                           outputFormat === fmt.value
-                            ? 'bg-primary text-primary-foreground'
+                            ? 'bg-blue-600 text-white ring-2 ring-blue-300'
                             : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                         } ${fmt.value === 'json' ? 'rounded-l-md' : ''} ${fmt.value === 'fprm' ? 'rounded-r-md' : ''}`}
                       >
