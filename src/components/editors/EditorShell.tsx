@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { X } from 'lucide-react';
 
 // --- Shared editor prop types ---
 
@@ -18,6 +19,30 @@ export interface EditorProps {
 export function isDirty(formData: Record<string, unknown>, defaults: Record<string, unknown> | undefined, key: string): boolean {
   if (!defaults) return false;
   return JSON.stringify(formData[key]) !== JSON.stringify(defaults[key]);
+}
+
+// Reset button — always takes space, invisible when not dirty (no layout shift)
+function FieldResetButton({ dirty, onReset }: { dirty?: boolean; onReset?: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onReset}
+      className={`p-0.5 rounded flex-shrink-0 ${dirty && onReset ? 'text-amber-600 hover:text-amber-800 hover:bg-amber-100' : 'invisible'}`}
+      title="Reset to default"
+    >
+      <X className="h-3 w-3" />
+    </button>
+  );
+}
+
+// Dirty indicator dot + reset button combo for field headers
+function DirtyIndicators({ dirty, onReset }: { dirty?: boolean; onReset?: () => void }) {
+  return (
+    <>
+      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${dirty ? 'bg-amber-500' : 'invisible'}`} title={dirty ? 'Modified' : undefined} />
+      <FieldResetButton dirty={dirty} onReset={onReset} />
+    </>
+  );
 }
 
 // --- Tab panel ---
@@ -86,6 +111,7 @@ export function BoolField({
   disabled,
   indent,
   dirty,
+  onReset,
 }: {
   label: string;
   description?: string;
@@ -94,6 +120,7 @@ export function BoolField({
   disabled?: boolean;
   indent?: boolean;
   dirty?: boolean;
+  onReset?: () => void;
 }) {
   return (
     <div className={`flex items-center gap-2 py-1.5 ${indent ? 'ml-6' : ''} ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
@@ -106,7 +133,7 @@ export function BoolField({
         <Label className={disabled ? 'text-muted-foreground' : ''}>{label}</Label>
         {description && <p className="text-xs text-muted-foreground">{description}</p>}
       </div>
-      {dirty && <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" title="Modified" />}
+      <DirtyIndicators dirty={dirty} onReset={onReset} />
     </div>
   );
 }
@@ -120,6 +147,7 @@ export function TextField({
   mono,
   indent,
   dirty,
+  onReset,
 }: {
   label: string;
   value: string;
@@ -129,12 +157,13 @@ export function TextField({
   mono?: boolean;
   indent?: boolean;
   dirty?: boolean;
+  onReset?: () => void;
 }) {
   return (
     <div className={`py-1.5 ${indent ? 'ml-6' : ''} ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
       <div className="flex items-center gap-1">
-        <Label className={disabled ? 'text-muted-foreground' : ''}>{label}</Label>
-        {dirty && <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" title="Modified" />}
+        <Label className={`flex-1 ${disabled ? 'text-muted-foreground' : ''}`}>{label}</Label>
+        <DirtyIndicators dirty={dirty} onReset={onReset} />
       </div>
       <Input
         value={value}
@@ -155,6 +184,7 @@ export function TextAreaField({
   rows,
   mono,
   dirty,
+  onReset,
 }: {
   label: string;
   value: string;
@@ -163,12 +193,13 @@ export function TextAreaField({
   rows?: number;
   mono?: boolean;
   dirty?: boolean;
+  onReset?: () => void;
 }) {
   return (
     <div className={`py-1.5 ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
       <div className="flex items-center gap-1">
-        <Label className={disabled ? 'text-muted-foreground' : ''}>{label}</Label>
-        {dirty && <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" title="Modified" />}
+        <Label className={`flex-1 ${disabled ? 'text-muted-foreground' : ''}`}>{label}</Label>
+        <DirtyIndicators dirty={dirty} onReset={onReset} />
       </div>
       <Textarea
         value={value}
@@ -190,6 +221,7 @@ export function NumberField({
   max,
   indent,
   dirty,
+  onReset,
 }: {
   label: string;
   value: number;
@@ -199,12 +231,13 @@ export function NumberField({
   max?: number;
   indent?: boolean;
   dirty?: boolean;
+  onReset?: () => void;
 }) {
   return (
     <div className={`py-1.5 ${indent ? 'ml-6' : ''} ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
       <div className="flex items-center gap-1">
-        <Label className={disabled ? 'text-muted-foreground' : ''}>{label}</Label>
-        {dirty && <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" title="Modified" />}
+        <Label className={`flex-1 ${disabled ? 'text-muted-foreground' : ''}`}>{label}</Label>
+        <DirtyIndicators dirty={dirty} onReset={onReset} />
       </div>
       <Input
         type="number"
@@ -227,6 +260,7 @@ export function SelectField({
   disabled,
   indent,
   dirty,
+  onReset,
 }: {
   label: string;
   value: string | number;
@@ -235,12 +269,13 @@ export function SelectField({
   disabled?: boolean;
   indent?: boolean;
   dirty?: boolean;
+  onReset?: () => void;
 }) {
   return (
     <div className={`py-1.5 ${indent ? 'ml-6' : ''} ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
       <div className="flex items-center gap-1">
-        <Label className={disabled ? 'text-muted-foreground' : ''}>{label}</Label>
-        {dirty && <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" title="Modified" />}
+        <Label className={`flex-1 ${disabled ? 'text-muted-foreground' : ''}`}>{label}</Label>
+        <DirtyIndicators dirty={dirty} onReset={onReset} />
       </div>
       <Select
         value={String(value)}
@@ -262,6 +297,7 @@ export function RadioGroup({
   onChange,
   disabled,
   dirty,
+  onReset,
 }: {
   label?: string;
   value: string | number | boolean;
@@ -269,13 +305,14 @@ export function RadioGroup({
   onChange: (v: string) => void;
   disabled?: boolean;
   dirty?: boolean;
+  onReset?: () => void;
 }) {
   return (
     <div className={`py-1.5 ${dirty ? 'bg-amber-50 -mx-2 px-2 rounded ring-1 ring-amber-200' : ''}`}>
       {label && (
         <div className="flex items-center gap-1 mb-1">
-          <Label>{label}</Label>
-          {dirty && <span className="w-2 h-2 rounded-full bg-amber-500 flex-shrink-0" title="Modified" />}
+          <Label className="flex-1">{label}</Label>
+          <DirtyIndicators dirty={dirty} onReset={onReset} />
         </div>
       )}
       <div className="space-y-1">
@@ -342,6 +379,7 @@ export function CodeFinderSection({
         checked={enabled}
         onChange={(v) => set(formData, onChange, useCodeFinderKey, v)}
         dirty={isDirty(formData, defaults, useCodeFinderKey)}
+        onReset={() => { if (defaults && useCodeFinderKey in defaults) set(formData, onChange, useCodeFinderKey, defaults[useCodeFinderKey]); }}
       />
       <div className={enabled ? '' : 'opacity-50 pointer-events-none'}>
         <TextAreaField
@@ -351,6 +389,7 @@ export function CodeFinderSection({
           mono
           rows={5}
           dirty={isDirty(formData, defaults, codeFinderKey)}
+          onReset={() => { if (defaults && codeFinderKey in defaults) set(formData, onChange, codeFinderKey, defaults[codeFinderKey]); }}
         />
       </div>
     </div>

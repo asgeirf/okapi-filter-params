@@ -3,17 +3,22 @@ import { type EditorProps, TabPanel, FieldGroup, BoolField, TextField, CodeFinde
 export function OpenXmlEditor({ formData, onChange, defaults }: EditorProps) {
   const s = (k: string, v: unknown) => set(formData, onChange, k, v);
   const d = (key: string) => isDirty(formData, defaults, key);
+  const r = (key: string) => () => { if (defaults && key in defaults) set(formData, onChange, key, defaults[key]); };
 
   const generalTab = (
     <div className="space-y-2">
       <FieldGroup label="Document Properties">
-        <BoolField label="Translate document properties" checked={val(formData, 'translateDocProperties', true)} onChange={(v) => s('translateDocProperties', v)} dirty={d('translateDocProperties')} />
-        <BoolField label="Translate comments" checked={val(formData, 'translateComments', true)} onChange={(v) => s('translateComments', v)} dirty={d('translateComments')} />
+        <BoolField label="Translate document properties" checked={val(formData, 'translateDocProperties', true)} onChange={(v) => s('translateDocProperties', v)} dirty={d('translateDocProperties')}
+          onReset={r('translateDocProperties')} />
+        <BoolField label="Translate comments" checked={val(formData, 'translateComments', true)} onChange={(v) => s('translateComments', v)} dirty={d('translateComments')}
+          onReset={r('translateComments')} />
       </FieldGroup>
 
       <FieldGroup label="Processing">
-        <BoolField label="Aggressive cleanup" checked={val(formData, 'aggressiveCleanup', false)} onChange={(v) => s('aggressiveCleanup', v)} dirty={d('aggressiveCleanup')} />
-        <BoolField label="Automatic tag discovery" checked={val(formData, 'automaticWS', true)} onChange={(v) => s('automaticWS', v)} dirty={d('automaticWS')} />
+        <BoolField label="Aggressive cleanup" checked={val(formData, 'aggressiveCleanup', false)} onChange={(v) => s('aggressiveCleanup', v)} dirty={d('aggressiveCleanup')}
+          onReset={r('aggressiveCleanup')} />
+        <BoolField label="Automatic tag discovery" checked={val(formData, 'automaticWS', true)} onChange={(v) => s('automaticWS', v)} dirty={d('automaticWS')}
+          onReset={r('automaticWS')} />
       </FieldGroup>
     </div>
   );
@@ -33,13 +38,17 @@ export function OpenXmlEditor({ formData, onChange, defaults }: EditorProps) {
   const wordTab = (
     <div className="space-y-2">
       <FieldGroup label="Content Extraction">
-        <BoolField label="Translate headers and footers" checked={val(formData, 'translateWordHeadersFooters', true)} onChange={(v) => s('translateWordHeadersFooters', v)} dirty={d('translateWordHeadersFooters')} />
-        <BoolField label="Translate hidden text" checked={val(formData, 'translateWordHidden', false)} onChange={(v) => s('translateWordHidden', v)} dirty={d('translateWordHidden')} />
-        <BoolField label="Translate footnotes/endnotes" checked={val(formData, 'translateWordFootnoteEndnote', true)} onChange={(v) => s('translateWordFootnoteEndnote', v)} dirty={d('translateWordFootnoteEndnote')} />
+        <BoolField label="Translate headers and footers" checked={val(formData, 'translateWordHeadersFooters', true)} onChange={(v) => s('translateWordHeadersFooters', v)} dirty={d('translateWordHeadersFooters')}
+          onReset={r('translateWordHeadersFooters')} />
+        <BoolField label="Translate hidden text" checked={val(formData, 'translateWordHidden', false)} onChange={(v) => s('translateWordHidden', v)} dirty={d('translateWordHidden')}
+          onReset={r('translateWordHidden')} />
+        <BoolField label="Translate footnotes/endnotes" checked={val(formData, 'translateWordFootnoteEndnote', true)} onChange={(v) => s('translateWordFootnoteEndnote', v)} dirty={d('translateWordFootnoteEndnote')}
+          onReset={r('translateWordFootnoteEndnote')} />
       </FieldGroup>
 
       <FieldGroup label="Revision Handling">
-        <BoolField label="Translate revisions" checked={val(formData, 'translateWordExcludeGraphicMetaData', false)} onChange={(v) => s('translateWordExcludeGraphicMetaData', v)} dirty={d('translateWordExcludeGraphicMetaData')} />
+        <BoolField label="Translate revisions" checked={val(formData, 'translateWordExcludeGraphicMetaData', false)} onChange={(v) => s('translateWordExcludeGraphicMetaData', v)} dirty={d('translateWordExcludeGraphicMetaData')}
+          onReset={r('translateWordExcludeGraphicMetaData')} />
       </FieldGroup>
 
       <FieldGroup label="Style Filtering">
@@ -49,6 +58,7 @@ export function OpenXmlEditor({ formData, onChange, defaults }: EditorProps) {
           onChange={(v) => s('tsExcelExcludedStyles', v)}
           placeholder="Style1, Style2"
           dirty={d('tsExcelExcludedStyles')}
+          onReset={r('tsExcelExcludedStyles')}
         />
       </FieldGroup>
 
@@ -59,6 +69,7 @@ export function OpenXmlEditor({ formData, onChange, defaults }: EditorProps) {
           onChange={(v) => s('tsWordExcludedHighlightColors', v)}
           placeholder="yellow, green"
           dirty={d('tsWordExcludedHighlightColors')}
+          onReset={r('tsWordExcludedHighlightColors')}
         />
       </FieldGroup>
     </div>
@@ -67,10 +78,14 @@ export function OpenXmlEditor({ formData, onChange, defaults }: EditorProps) {
   const powerpointTab = (
     <div className="space-y-2">
       <FieldGroup label="Content Extraction">
-        <BoolField label="Translate diagram data" checked={val(formData, 'translatePowerpointDiagramData', false)} onChange={(v) => s('translatePowerpointDiagramData', v)} dirty={d('translatePowerpointDiagramData')} />
-        <BoolField label="Translate charts" checked={val(formData, 'translatePowerpointCharts', false)} onChange={(v) => s('translatePowerpointCharts', v)} dirty={d('translatePowerpointCharts')} />
-        <BoolField label="Translate notes" checked={val(formData, 'translatePowerpointNotes', true)} onChange={(v) => s('translatePowerpointNotes', v)} dirty={d('translatePowerpointNotes')} />
-        <BoolField label="Translate slide masters" checked={val(formData, 'translatePowerpointMasters', false)} onChange={(v) => s('translatePowerpointMasters', v)} dirty={d('translatePowerpointMasters')} />
+        <BoolField label="Translate diagram data" checked={val(formData, 'translatePowerpointDiagramData', false)} onChange={(v) => s('translatePowerpointDiagramData', v)} dirty={d('translatePowerpointDiagramData')}
+          onReset={r('translatePowerpointDiagramData')} />
+        <BoolField label="Translate charts" checked={val(formData, 'translatePowerpointCharts', false)} onChange={(v) => s('translatePowerpointCharts', v)} dirty={d('translatePowerpointCharts')}
+          onReset={r('translatePowerpointCharts')} />
+        <BoolField label="Translate notes" checked={val(formData, 'translatePowerpointNotes', true)} onChange={(v) => s('translatePowerpointNotes', v)} dirty={d('translatePowerpointNotes')}
+          onReset={r('translatePowerpointNotes')} />
+        <BoolField label="Translate slide masters" checked={val(formData, 'translatePowerpointMasters', false)} onChange={(v) => s('translatePowerpointMasters', v)} dirty={d('translatePowerpointMasters')}
+          onReset={r('translatePowerpointMasters')} />
       </FieldGroup>
     </div>
   );
@@ -78,10 +93,14 @@ export function OpenXmlEditor({ formData, onChange, defaults }: EditorProps) {
   const excelTab = (
     <div className="space-y-2">
       <FieldGroup label="Content Extraction">
-        <BoolField label="Translate hidden cells" checked={val(formData, 'translateExcelHidden', false)} onChange={(v) => s('translateExcelHidden', v)} dirty={d('translateExcelHidden')} />
-        <BoolField label="Translate sheet names" checked={val(formData, 'translateExcelSheetNames', false)} onChange={(v) => s('translateExcelSheetNames', v)} dirty={d('translateExcelSheetNames')} />
-        <BoolField label="Translate diagram data" checked={val(formData, 'translateExcelDiagramData', false)} onChange={(v) => s('translateExcelDiagramData', v)} dirty={d('translateExcelDiagramData')} />
-        <BoolField label="Translate drawing data" checked={val(formData, 'translateExcelDrawings', false)} onChange={(v) => s('translateExcelDrawings', v)} dirty={d('translateExcelDrawings')} />
+        <BoolField label="Translate hidden cells" checked={val(formData, 'translateExcelHidden', false)} onChange={(v) => s('translateExcelHidden', v)} dirty={d('translateExcelHidden')}
+          onReset={r('translateExcelHidden')} />
+        <BoolField label="Translate sheet names" checked={val(formData, 'translateExcelSheetNames', false)} onChange={(v) => s('translateExcelSheetNames', v)} dirty={d('translateExcelSheetNames')}
+          onReset={r('translateExcelSheetNames')} />
+        <BoolField label="Translate diagram data" checked={val(formData, 'translateExcelDiagramData', false)} onChange={(v) => s('translateExcelDiagramData', v)} dirty={d('translateExcelDiagramData')}
+          onReset={r('translateExcelDiagramData')} />
+        <BoolField label="Translate drawing data" checked={val(formData, 'translateExcelDrawings', false)} onChange={(v) => s('translateExcelDrawings', v)} dirty={d('translateExcelDrawings')}
+          onReset={r('translateExcelDrawings')} />
       </FieldGroup>
 
       <FieldGroup label="Processing">
@@ -91,12 +110,14 @@ export function OpenXmlEditor({ formData, onChange, defaults }: EditorProps) {
           onChange={(v) => s('tsExcelSubfilter', v)}
           placeholder="Filter ID"
           dirty={d('tsExcelSubfilter')}
+          onReset={r('tsExcelSubfilter')}
         />
         <TextField
           label="Excluded colors (comma-separated)"
           value={val(formData, 'tsExcelExcludedColors', '')}
           onChange={(v) => s('tsExcelExcludedColors', v)}
           dirty={d('tsExcelExcludedColors')}
+          onReset={r('tsExcelExcludedColors')}
         />
       </FieldGroup>
     </div>

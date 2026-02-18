@@ -3,6 +3,7 @@ import { type EditorProps, TabPanel, FieldGroup, BoolField, TextField, RadioGrou
 export function PoEditor({ formData, onChange, defaults }: EditorProps) {
   const s = (k: string, v: unknown) => set(formData, onChange, k, v);
   const d = (key: string) => isDirty(formData, defaults, key);
+  const r = (key: string) => () => { if (defaults && key in defaults) set(formData, onChange, key, defaults[key]); };
   const bilingualMode = val(formData, 'bilingualMode', true);
 
   const optionsTab = (
@@ -12,12 +13,14 @@ export function PoEditor({ formData, onChange, defaults }: EditorProps) {
         checked={val(formData, 'protectApproved', true)}
         onChange={(v) => s('protectApproved', v)}
         dirty={d('protectApproved')}
+          onReset={r('protectApproved')}
       />
       <BoolField
         label="Include message context in note"
         checked={val(formData, 'includeMsgContextInNote', false)}
         onChange={(v) => s('includeMsgContextInNote', v)}
         dirty={d('includeMsgContextInNote')}
+          onReset={r('includeMsgContextInNote')}
       />
 
       <FieldGroup label="Mode">
@@ -44,6 +47,7 @@ export function PoEditor({ formData, onChange, defaults }: EditorProps) {
             onChange={(v) => s('makeID', v)}
             indent
             dirty={d('makeID')}
+          onReset={r('makeID')}
           />
         )}
       </FieldGroup>
@@ -54,6 +58,7 @@ export function PoEditor({ formData, onChange, defaults }: EditorProps) {
         onChange={(v) => s('subfilter', v)}
         placeholder="Configuration identifier of the sub-filter"
         dirty={d('subfilter')}
+          onReset={r('subfilter')}
       />
     </div>
   );

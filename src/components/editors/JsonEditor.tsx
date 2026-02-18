@@ -3,6 +3,7 @@ import { type EditorProps, TabPanel, FieldGroup, BoolField, TextField, RadioGrou
 export function JsonEditor({ formData, onChange, defaults }: EditorProps) {
   const s = (k: string, v: unknown) => set(formData, onChange, k, v);
   const d = (key: string) => isDirty(formData, defaults, key);
+  const r = (key: string) => () => { if (defaults && key in defaults) set(formData, onChange, key, defaults[key]); };
 
   const optionsTab = (
     <div className="space-y-2">
@@ -12,6 +13,7 @@ export function JsonEditor({ formData, onChange, defaults }: EditorProps) {
           checked={val(formData, 'extractStandalone', true)}
           onChange={(v) => s('extractStandalone', v)}
           dirty={d('extractStandalone')}
+          onReset={r('extractStandalone')}
         />
       </FieldGroup>
 
@@ -24,6 +26,7 @@ export function JsonEditor({ formData, onChange, defaults }: EditorProps) {
           ]}
           onChange={(v) => s('extractAllPairs', v === 'all')}
           dirty={d('extractAllPairs')}
+          onReset={r('extractAllPairs')}
         />
         <TextField
           label="Exceptions (regex)"
@@ -32,18 +35,21 @@ export function JsonEditor({ formData, onChange, defaults }: EditorProps) {
           mono
           placeholder="Regular expression for exceptions"
           dirty={d('exceptions')}
+          onReset={r('exceptions')}
         />
         <BoolField
           label="Use key as resource name"
           checked={val(formData, 'useKeyAsName', true)}
           onChange={(v) => s('useKeyAsName', v)}
           dirty={d('useKeyAsName')}
+          onReset={r('useKeyAsName')}
         />
         <BoolField
           label="Use full key path"
           checked={val(formData, 'useFullKeyPath', true)}
           onChange={(v) => s('useFullKeyPath', v)}
           dirty={d('useFullKeyPath')}
+          onReset={r('useFullKeyPath')}
         />
         <BoolField
           label="Use leading slash on key path"
@@ -52,22 +58,30 @@ export function JsonEditor({ formData, onChange, defaults }: EditorProps) {
           disabled={!val(formData, 'useFullKeyPath', true)}
           indent
           dirty={d('useLeadingSlashOnKeyPath')}
+          onReset={r('useLeadingSlashOnKeyPath')}
         />
         <BoolField
           label="Use ID stack"
           checked={val(formData, 'useIdStack', false)}
           onChange={(v) => s('useIdStack', v)}
           dirty={d('useIdStack')}
+          onReset={r('useIdStack')}
         />
       </FieldGroup>
 
       <FieldGroup label="Metadata Rules">
-        <TextField label="Note rules" value={val(formData, 'noteRules', '')} onChange={(v) => s('noteRules', v)} mono dirty={d('noteRules')} />
-        <TextField label="Generic metadata rules" value={val(formData, 'genericMetadataRules', '')} onChange={(v) => s('genericMetadataRules', v)} mono dirty={d('genericMetadataRules')} />
-        <TextField label="ID rules" value={val(formData, 'idRules', '')} onChange={(v) => s('idRules', v)} mono dirty={d('idRules')} />
-        <TextField label="Extraction rules" value={val(formData, 'extractionRules', '')} onChange={(v) => s('extractionRules', v)} mono dirty={d('extractionRules')} />
-        <TextField label="Max width rules" value={val(formData, 'maxwidthRules', '')} onChange={(v) => s('maxwidthRules', v)} mono dirty={d('maxwidthRules')} />
-        <TextField label="Max width size unit" value={val(formData, 'maxwidthSizeUnit', '')} onChange={(v) => s('maxwidthSizeUnit', v)} dirty={d('maxwidthSizeUnit')} />
+        <TextField label="Note rules" value={val(formData, 'noteRules', '')} onChange={(v) => s('noteRules', v)} mono dirty={d('noteRules')}
+          onReset={r('noteRules')} />
+        <TextField label="Generic metadata rules" value={val(formData, 'genericMetadataRules', '')} onChange={(v) => s('genericMetadataRules', v)} mono dirty={d('genericMetadataRules')}
+          onReset={r('genericMetadataRules')} />
+        <TextField label="ID rules" value={val(formData, 'idRules', '')} onChange={(v) => s('idRules', v)} mono dirty={d('idRules')}
+          onReset={r('idRules')} />
+        <TextField label="Extraction rules" value={val(formData, 'extractionRules', '')} onChange={(v) => s('extractionRules', v)} mono dirty={d('extractionRules')}
+          onReset={r('extractionRules')} />
+        <TextField label="Max width rules" value={val(formData, 'maxwidthRules', '')} onChange={(v) => s('maxwidthRules', v)} mono dirty={d('maxwidthRules')}
+          onReset={r('maxwidthRules')} />
+        <TextField label="Max width size unit" value={val(formData, 'maxwidthSizeUnit', '')} onChange={(v) => s('maxwidthSizeUnit', v)} dirty={d('maxwidthSizeUnit')}
+          onReset={r('maxwidthSizeUnit')} />
       </FieldGroup>
     </div>
   );
@@ -80,6 +94,7 @@ export function JsonEditor({ formData, onChange, defaults }: EditorProps) {
           checked={val(formData, 'escapeForwardSlashes', false)}
           onChange={(v) => s('escapeForwardSlashes', v)}
           dirty={d('escapeForwardSlashes')}
+          onReset={r('escapeForwardSlashes')}
         />
       </FieldGroup>
 
@@ -92,11 +107,14 @@ export function JsonEditor({ formData, onChange, defaults }: EditorProps) {
           ]}
           onChange={(v) => s('useCodeFinder', v === 'codefinder')}
           dirty={d('useCodeFinder')}
+          onReset={r('useCodeFinder')}
         />
         {!val(formData, 'useCodeFinder', false) && (
           <>
-            <TextField label="Subfilter ID" value={val(formData, 'subfilter', '')} onChange={(v) => s('subfilter', v)} indent dirty={d('subfilter')} />
-            <TextField label="Subfilter rules" value={val(formData, 'subfilterRules', '')} onChange={(v) => s('subfilterRules', v)} mono indent dirty={d('subfilterRules')} />
+            <TextField label="Subfilter ID" value={val(formData, 'subfilter', '')} onChange={(v) => s('subfilter', v)} indent dirty={d('subfilter')}
+          onReset={r('subfilter')} />
+            <TextField label="Subfilter rules" value={val(formData, 'subfilterRules', '')} onChange={(v) => s('subfilterRules', v)} mono indent dirty={d('subfilterRules')}
+          onReset={r('subfilterRules')} />
           </>
         )}
         {val(formData, 'useCodeFinder', false) && (

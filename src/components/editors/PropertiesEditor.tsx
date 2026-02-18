@@ -3,6 +3,7 @@ import { type EditorProps, TabPanel, FieldGroup, BoolField, TextField, RadioGrou
 export function PropertiesEditor({ formData, onChange, defaults }: EditorProps) {
   const s = (k: string, v: unknown) => set(formData, onChange, k, v);
   const d = (key: string) => isDirty(formData, defaults, key);
+  const r = (key: string) => () => { if (defaults && key in defaults) set(formData, onChange, key, defaults[key]); };
   const useKeyFilter = val(formData, 'useKeyCondition', false);
 
   const optionsTab = (
@@ -22,6 +23,7 @@ export function PropertiesEditor({ formData, onChange, defaults }: EditorProps) 
           onChange={(v) => s('extractOnlyMatchingKey', v === 'extract')}
           disabled={!useKeyFilter}
           dirty={d('extractOnlyMatchingKey')}
+          onReset={r('extractOnlyMatchingKey')}
         />
         <TextField
           label="Key condition pattern"
@@ -32,18 +34,24 @@ export function PropertiesEditor({ formData, onChange, defaults }: EditorProps) 
           indent
           placeholder="Regular expression"
           dirty={d('keyCondition')}
+          onReset={r('keyCondition')}
         />
       </FieldGroup>
 
       <FieldGroup label="Comments">
-        <BoolField label="Extract extra comments" checked={val(formData, 'extraComments', false)} onChange={(v) => s('extraComments', v)} dirty={d('extraComments')} />
-        <BoolField label="Comments are notes" checked={val(formData, 'commentsAreNotes', false)} onChange={(v) => s('commentsAreNotes', v)} dirty={d('commentsAreNotes')} />
+        <BoolField label="Extract extra comments" checked={val(formData, 'extraComments', false)} onChange={(v) => s('extraComments', v)} dirty={d('extraComments')}
+          onReset={r('extraComments')} />
+        <BoolField label="Comments are notes" checked={val(formData, 'commentsAreNotes', false)} onChange={(v) => s('commentsAreNotes', v)} dirty={d('commentsAreNotes')}
+          onReset={r('commentsAreNotes')} />
       </FieldGroup>
 
       <FieldGroup label="Processing">
-        <BoolField label="Convert LF and tab characters" checked={val(formData, 'convertLFandTab', true)} onChange={(v) => s('convertLFandTab', v)} dirty={d('convertLFandTab')} />
-        <BoolField label="Use resource name as ID" checked={val(formData, 'idLikeResname', false)} onChange={(v) => s('idLikeResname', v)} dirty={d('idLikeResname')} />
-        <BoolField label="Use Java escapes" checked={val(formData, 'useJavaEscapes', true)} onChange={(v) => s('useJavaEscapes', v)} dirty={d('useJavaEscapes')} />
+        <BoolField label="Convert LF and tab characters" checked={val(formData, 'convertLFandTab', true)} onChange={(v) => s('convertLFandTab', v)} dirty={d('convertLFandTab')}
+          onReset={r('convertLFandTab')} />
+        <BoolField label="Use resource name as ID" checked={val(formData, 'idLikeResname', false)} onChange={(v) => s('idLikeResname', v)} dirty={d('idLikeResname')}
+          onReset={r('idLikeResname')} />
+        <BoolField label="Use Java escapes" checked={val(formData, 'useJavaEscapes', true)} onChange={(v) => s('useJavaEscapes', v)} dirty={d('useJavaEscapes')}
+          onReset={r('useJavaEscapes')} />
       </FieldGroup>
 
       <TextField
@@ -52,6 +60,7 @@ export function PropertiesEditor({ formData, onChange, defaults }: EditorProps) 
         onChange={(v) => s('subfilter', v)}
         placeholder="Configuration identifier of the sub-filter (empty for none)"
         dirty={d('subfilter')}
+          onReset={r('subfilter')}
       />
     </div>
   );
@@ -75,6 +84,7 @@ export function PropertiesEditor({ formData, onChange, defaults }: EditorProps) 
         checked={val(formData, 'escapeExtendedChars', true)}
         onChange={(v) => s('escapeExtendedChars', v)}
         dirty={d('escapeExtendedChars')}
+          onReset={r('escapeExtendedChars')}
       />
     </FieldGroup>
   );

@@ -3,13 +3,17 @@ import { type EditorProps, TabPanel, FieldGroup, BoolField, TextField, NumberFie
 export function TableEditor({ formData, onChange, defaults }: EditorProps) {
   const s = (k: string, v: unknown) => set(formData, onChange, k, v);
   const d = (key: string) => isDirty(formData, defaults, key);
+  const r = (key: string) => () => { if (defaults && key in defaults) set(formData, onChange, key, defaults[key]); };
 
   const tableTab = (
     <div className="space-y-2">
       <FieldGroup label="Delimiters">
-        <TextField label="Field delimiter" value={val(formData, 'fieldDelimiter', ',')} onChange={(v) => s('fieldDelimiter', v)} mono dirty={d('fieldDelimiter')} />
-        <TextField label="Text qualifier" value={val(formData, 'textQualifier', '"')} onChange={(v) => s('textQualifier', v)} mono dirty={d('textQualifier')} />
-        <BoolField label="Remove qualifiers" checked={val(formData, 'removeQualifiers', true)} onChange={(v) => s('removeQualifiers', v)} dirty={d('removeQualifiers')} />
+        <TextField label="Field delimiter" value={val(formData, 'fieldDelimiter', ',')} onChange={(v) => s('fieldDelimiter', v)} mono dirty={d('fieldDelimiter')}
+          onReset={r('fieldDelimiter')} />
+        <TextField label="Text qualifier" value={val(formData, 'textQualifier', '"')} onChange={(v) => s('textQualifier', v)} mono dirty={d('textQualifier')}
+          onReset={r('textQualifier')} />
+        <BoolField label="Remove qualifiers" checked={val(formData, 'removeQualifiers', true)} onChange={(v) => s('removeQualifiers', v)} dirty={d('removeQualifiers')}
+          onReset={r('removeQualifiers')} />
         <SelectField
           label="Escaping mode"
           value={val(formData, 'escapingMode', 0)}
@@ -20,6 +24,7 @@ export function TableEditor({ formData, onChange, defaults }: EditorProps) {
           ]}
           onChange={(v) => s('escapingMode', Number(v))}
           dirty={d('escapingMode')}
+          onReset={r('escapingMode')}
         />
         <SelectField
           label="Add qualifiers"
@@ -31,12 +36,15 @@ export function TableEditor({ formData, onChange, defaults }: EditorProps) {
           ]}
           onChange={(v) => s('addQualifiers', Number(v))}
           dirty={d('addQualifiers')}
+          onReset={r('addQualifiers')}
         />
       </FieldGroup>
 
       <FieldGroup label="Row Detection">
-        <NumberField label="Column names on line" value={val(formData, 'columnNamesLineNum', 1)} onChange={(v) => s('columnNamesLineNum', v)} min={0} dirty={d('columnNamesLineNum')} />
-        <NumberField label="Values start on line" value={val(formData, 'valuesStartLineNum', 2)} onChange={(v) => s('valuesStartLineNum', v)} min={1} dirty={d('valuesStartLineNum')} />
+        <NumberField label="Column names on line" value={val(formData, 'columnNamesLineNum', 1)} onChange={(v) => s('columnNamesLineNum', v)} min={0} dirty={d('columnNamesLineNum')}
+          onReset={r('columnNamesLineNum')} />
+        <NumberField label="Values start on line" value={val(formData, 'valuesStartLineNum', 2)} onChange={(v) => s('valuesStartLineNum', v)} min={1} dirty={d('valuesStartLineNum')}
+          onReset={r('valuesStartLineNum')} />
         <SelectField
           label="Detect columns mode"
           value={val(formData, 'detectColumnsMode', 0)}
@@ -46,6 +54,7 @@ export function TableEditor({ formData, onChange, defaults }: EditorProps) {
           ]}
           onChange={(v) => s('detectColumnsMode', Number(v))}
           dirty={d('detectColumnsMode')}
+          onReset={r('detectColumnsMode')}
         />
         <NumberField
           label="Number of columns"
@@ -54,6 +63,7 @@ export function TableEditor({ formData, onChange, defaults }: EditorProps) {
           min={1}
           disabled={val(formData, 'detectColumnsMode', 0) === 0}
           dirty={d('numColumns')}
+          onReset={r('numColumns')}
         />
       </FieldGroup>
     </div>
@@ -72,6 +82,7 @@ export function TableEditor({ formData, onChange, defaults }: EditorProps) {
           ]}
           onChange={(v) => s('sendHeaderMode', Number(v))}
           dirty={d('sendHeaderMode')}
+          onReset={r('sendHeaderMode')}
         />
         <SelectField
           label="Send columns mode"
@@ -83,23 +94,34 @@ export function TableEditor({ formData, onChange, defaults }: EditorProps) {
           ]}
           onChange={(v) => s('sendColumnsMode', Number(v))}
           dirty={d('sendColumnsMode')}
+          onReset={r('sendColumnsMode')}
         />
       </FieldGroup>
 
       <FieldGroup label="Column Assignments">
-        <TextField label="Source columns" value={val(formData, 'sourceColumns', '')} onChange={(v) => s('sourceColumns', v)} placeholder="e.g. 1,2" dirty={d('sourceColumns')} />
-        <TextField label="Target columns" value={val(formData, 'targetColumns', '')} onChange={(v) => s('targetColumns', v)} placeholder="e.g. 3" dirty={d('targetColumns')} />
-        <TextField label="Source ID columns" value={val(formData, 'sourceIdColumns', '')} onChange={(v) => s('sourceIdColumns', v)} dirty={d('sourceIdColumns')} />
-        <TextField label="Comment columns" value={val(formData, 'commentColumns', '')} onChange={(v) => s('commentColumns', v)} dirty={d('commentColumns')} />
-        <NumberField label="Record ID column" value={val(formData, 'recordIdColumn', 0)} onChange={(v) => s('recordIdColumn', v)} min={0} dirty={d('recordIdColumn')} />
+        <TextField label="Source columns" value={val(formData, 'sourceColumns', '')} onChange={(v) => s('sourceColumns', v)} placeholder="e.g. 1,2" dirty={d('sourceColumns')}
+          onReset={r('sourceColumns')} />
+        <TextField label="Target columns" value={val(formData, 'targetColumns', '')} onChange={(v) => s('targetColumns', v)} placeholder="e.g. 3" dirty={d('targetColumns')}
+          onReset={r('targetColumns')} />
+        <TextField label="Source ID columns" value={val(formData, 'sourceIdColumns', '')} onChange={(v) => s('sourceIdColumns', v)} dirty={d('sourceIdColumns')}
+          onReset={r('sourceIdColumns')} />
+        <TextField label="Comment columns" value={val(formData, 'commentColumns', '')} onChange={(v) => s('commentColumns', v)} dirty={d('commentColumns')}
+          onReset={r('commentColumns')} />
+        <NumberField label="Record ID column" value={val(formData, 'recordIdColumn', 0)} onChange={(v) => s('recordIdColumn', v)} min={0} dirty={d('recordIdColumn')}
+          onReset={r('recordIdColumn')} />
       </FieldGroup>
 
       <FieldGroup label="Target Languages">
-        <TextField label="Target languages" value={val(formData, 'targetLanguages', '')} onChange={(v) => s('targetLanguages', v)} placeholder="Comma-separated language codes" dirty={d('targetLanguages')} />
-        <TextField label="Target source refs" value={val(formData, 'targetSourceRefs', '')} onChange={(v) => s('targetSourceRefs', v)} dirty={d('targetSourceRefs')} />
-        <TextField label="Source ID suffixes" value={val(formData, 'sourceIdSuffixes', '')} onChange={(v) => s('sourceIdSuffixes', v)} dirty={d('sourceIdSuffixes')} />
-        <TextField label="Source ID source refs" value={val(formData, 'sourceIdSourceRefs', '')} onChange={(v) => s('sourceIdSourceRefs', v)} dirty={d('sourceIdSourceRefs')} />
-        <TextField label="Comment source refs" value={val(formData, 'commentSourceRefs', '')} onChange={(v) => s('commentSourceRefs', v)} dirty={d('commentSourceRefs')} />
+        <TextField label="Target languages" value={val(formData, 'targetLanguages', '')} onChange={(v) => s('targetLanguages', v)} placeholder="Comma-separated language codes" dirty={d('targetLanguages')}
+          onReset={r('targetLanguages')} />
+        <TextField label="Target source refs" value={val(formData, 'targetSourceRefs', '')} onChange={(v) => s('targetSourceRefs', v)} dirty={d('targetSourceRefs')}
+          onReset={r('targetSourceRefs')} />
+        <TextField label="Source ID suffixes" value={val(formData, 'sourceIdSuffixes', '')} onChange={(v) => s('sourceIdSuffixes', v)} dirty={d('sourceIdSuffixes')}
+          onReset={r('sourceIdSuffixes')} />
+        <TextField label="Source ID source refs" value={val(formData, 'sourceIdSourceRefs', '')} onChange={(v) => s('sourceIdSourceRefs', v)} dirty={d('sourceIdSourceRefs')}
+          onReset={r('sourceIdSourceRefs')} />
+        <TextField label="Comment source refs" value={val(formData, 'commentSourceRefs', '')} onChange={(v) => s('commentSourceRefs', v)} dirty={d('commentSourceRefs')}
+          onReset={r('commentSourceRefs')} />
       </FieldGroup>
     </div>
   );
@@ -107,8 +129,10 @@ export function TableEditor({ formData, onChange, defaults }: EditorProps) {
   const optionsTab = (
     <div className="space-y-2">
       <FieldGroup label="Trimming">
-        <BoolField label="Trim leading whitespace" checked={val(formData, 'trimLeading', true)} onChange={(v) => s('trimLeading', v)} dirty={d('trimLeading')} />
-        <BoolField label="Trim trailing whitespace" checked={val(formData, 'trimTrailing', true)} onChange={(v) => s('trimTrailing', v)} dirty={d('trimTrailing')} />
+        <BoolField label="Trim leading whitespace" checked={val(formData, 'trimLeading', true)} onChange={(v) => s('trimLeading', v)} dirty={d('trimLeading')}
+          onReset={r('trimLeading')} />
+        <BoolField label="Trim trailing whitespace" checked={val(formData, 'trimTrailing', true)} onChange={(v) => s('trimTrailing', v)} dirty={d('trimTrailing')}
+          onReset={r('trimTrailing')} />
         <SelectField
           label="Trim mode"
           value={val(formData, 'trimMode', 1)}
@@ -119,12 +143,15 @@ export function TableEditor({ formData, onChange, defaults }: EditorProps) {
           ]}
           onChange={(v) => s('trimMode', Number(v))}
           dirty={d('trimMode')}
+          onReset={r('trimMode')}
         />
       </FieldGroup>
 
       <FieldGroup label="Processing">
-        <BoolField label="Unescape source" checked={val(formData, 'unescapeSource', true)} onChange={(v) => s('unescapeSource', v)} dirty={d('unescapeSource')} />
-        <BoolField label="Preserve whitespace" checked={val(formData, 'preserveWS', false)} onChange={(v) => s('preserveWS', v)} dirty={d('preserveWS')} />
+        <BoolField label="Unescape source" checked={val(formData, 'unescapeSource', true)} onChange={(v) => s('unescapeSource', v)} dirty={d('unescapeSource')}
+          onReset={r('unescapeSource')} />
+        <BoolField label="Preserve whitespace" checked={val(formData, 'preserveWS', false)} onChange={(v) => s('preserveWS', v)} dirty={d('preserveWS')}
+          onReset={r('preserveWS')} />
         <SelectField
           label="Wrap mode"
           value={val(formData, 'wrapMode', 0)}
@@ -135,11 +162,13 @@ export function TableEditor({ formData, onChange, defaults }: EditorProps) {
           ]}
           onChange={(v) => s('wrapMode', Number(v))}
           dirty={d('wrapMode')}
+          onReset={r('wrapMode')}
         />
       </FieldGroup>
 
       <FieldGroup label="Inline Codes">
-        <BoolField label="Use code finder" checked={val(formData, 'useCodeFinder', false)} onChange={(v) => s('useCodeFinder', v)} dirty={d('useCodeFinder')} />
+        <BoolField label="Use code finder" checked={val(formData, 'useCodeFinder', false)} onChange={(v) => s('useCodeFinder', v)} dirty={d('useCodeFinder')}
+          onReset={r('useCodeFinder')} />
       </FieldGroup>
     </div>
   );
