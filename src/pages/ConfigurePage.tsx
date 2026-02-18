@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { OkapiVersionSelector } from '@/components/OkapiVersionSelector';
 import { useOkapiVersion } from '@/components/OkapiVersionContext';
 import { getFilterById, getDefaults, getSparseConfig, getFilterVersions, getConfigurations, getFilterDataForConfig, type FilterSchema, type EditorHints, type EditorHintGroup } from '@/data';
-import { formatConfig, getOutputFormats, type OutputFormat, type SerializationFormat } from '@/lib/outputFormats';
+import { formatConfig, toJson, toYaml, type SerializationFormat } from '@/lib/outputFormats';
 import { getEditor } from '@/components/editors';
 import { 
   TagListWidget, 
@@ -262,9 +262,8 @@ export function ConfigurePage() {
   const filter = useMemo(() => getFilterById(filterId || '', okapiVersion), [filterId, okapiVersion]);
   const filterVersions = useMemo(() => getFilterVersions(filterId || ''), [filterId]);
   const configurations = useMemo(() => getConfigurations(filterId || '', okapiVersion), [filterId, okapiVersion]);
-  const [copied, setCopied] = useState(false);
+  const [copiedFormat, setCopiedFormat] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
-  const [outputFormat, setOutputFormat] = useState<OutputFormat>('json');
   const [selectedConfigId, setSelectedConfigId] = useState<string | null>(null);
   const [editorMode, setEditorMode] = useState<'form' | 'editor'>('editor');
 
@@ -367,18 +366,24 @@ export function ConfigurePage() {
   const serializationFormat: SerializationFormat = 
     (activeSchema as any)?.['x-filter']?.serializationFormat === 'yaml'
       ? 'yaml' : 'stringParameters';
-  const outputFormats = getOutputFormats(serializationFormat);
 
+  // Always show native .fprm format in the output panel
   const configOutputText = useMemo(() => 
-    formatConfig(sparseConfig, outputFormat, serializationFormat), 
-    [sparseConfig, outputFormat, serializationFormat]
+    formatConfig(sparseConfig, 'fprm', serializationFormat), 
+    [sparseConfig, serializationFormat]
   );
 
-  const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(configOutputText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, [configOutputText]);
+  const handleCopyAs = useCallback((format: string) => {
+    let text: string;
+    switch (format) {
+      case 'json': text = toJson(sparseConfig); break;
+      case 'yaml': text = toYaml(sparseConfig); break;
+      default: text = formatConfig(sparseConfig, 'fprm', serializationFormat); break;
+    }
+    navigator.clipboard.writeText(text || '{}');
+    setCopiedFormat(format);
+    setTimeout(() => setCopiedFormat(null), 2000);
+  }, [sparseConfig, serializationFormat]);
 
   const handleCopyLink = useCallback(() => {
     const hasConfig = Object.keys(sparseConfig).length > 0;
@@ -659,44 +664,42 @@ export function ConfigurePage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">Configuration Output</CardTitle>
-                  <Button variant="outline" size="sm" onClick={handleCopy}>
-                    {copied ? (
-                      <>
-                        <Check className="mr-2 h-4 w-4 text-green-600" />
-                        Copied!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="mr-2 h-4 w-4" />
-                        Copy
-                      </>
-                    )}
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    {Object.keys(sparseConfig).length === 0
-                      ? 'Using all default values'
-                      : `${Object.keys(sparseConfig).length} parameter${Object.keys(sparseConfig).length !== 1 ? 's' : ''} overridden`}
-                  </p>
-                  {/* Output format tabs */}
-                  <div className="flex rounded-md border">
-                    {outputFormats.map(fmt => (
-                      <button
-                        key={fmt.value}
-                        type="button"
-                        onClick={() => setOutputFormat(fmt.value)}
-                        className={`px-3 py-1 text-xs font-medium transition-colors ${
-                          outputFormat === fmt.value
-                            ? 'bg-blue-600 text-white ring-2 ring-blue-300'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                        } ${fmt.value === 'json' ? 'rounded-l-md' : ''} ${fmt.value === 'fprm' ? 'rounded-r-md' : ''}`}
+                  <div className="flex gap-1">
+                    {[
+                      { key: 'fprm', label: serializationFormat === 'yaml' ? '.fprm' : '.fprm' },
+                      { key: 'json', label: 'JSON' },
+                      { key: 'yaml', label: 'YAML' },
+                    ].map(fmt => (
+                      <Button
+                        key={fmt.key}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleCopyAs(fmt.key)}
+                        className="text-xs"
                       >
-                        {fmt.label}
-                      </button>
+                        {copiedFormat === fmt.key ? (
+                          <>
+                            <Check className="mr-1 h-3 w-3 text-green-600" />
+                            Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="mr-1 h-3 w-3" />
+                            {fmt.label}
+                          </>
+                        )}
+                      </Button>
                     ))}
                   </div>
                 </div>
+                <p className="text-sm text-muted-foreground">
+                  {Object.keys(sparseConfig).length === 0
+                    ? 'Using all default values'
+                    : `${Object.keys(sparseConfig).length} parameter${Object.keys(sparseConfig).length !== 1 ? 's' : ''} overridden`}
+                  {serializationFormat === 'yaml' && (
+                    <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">YAML format</span>
+                  )}
+                </p>
               </CardHeader>
               <CardContent>
                 <pre className="bg-muted p-4 rounded-md text-sm overflow-auto max-h-96 font-mono">

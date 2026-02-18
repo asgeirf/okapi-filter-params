@@ -103,13 +103,3 @@ export function formatExtension(
   }
 }
 
-/**
- * Get the output format options, with .fprm label adjusted for YAML-based filters.
- */
-export function getOutputFormats(serializationFormat: SerializationFormat = 'stringParameters') {
-  return [
-    { value: 'json' as OutputFormat, label: 'JSON' },
-    { value: 'yaml' as OutputFormat, label: 'YAML' },
-    { value: 'fprm' as OutputFormat, label: serializationFormat === 'yaml' ? '.fprm (YAML)' : '.fprm' },
-  ];
-}
