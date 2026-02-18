@@ -16,7 +16,7 @@ import { useOkapiVersion } from '@/components/OkapiVersionContext';
 import { getFilterById, getDefaults, getSparseConfig, getFilterVersions, getConfigurations, getFilterDataForConfig, type FilterSchema, type EditorHints, type EditorHintGroup } from '@/data';
 import { formatConfig, toJson, toYaml, type SerializationFormat } from '@/lib/outputFormats';
 import { getEditor } from '@/components/editors';
-import { getFilterDoc, getParamDoc } from '@/data/filterDocs';
+import { getFilterDoc, getParamDoc, type DocExample } from '@/data/filterDocs';
 import { ParamHelp } from '@/components/ui/param-help';
 import { ExternalLink, AlertTriangle } from 'lucide-react';
 import { CodeBlock } from '@/components/ui/code-block';
@@ -871,10 +871,58 @@ export function ConfigurePage() {
                 )}
               </CardContent>
             </Card>
+
+            {filterDoc?.examples && filterDoc.examples.length > 0 && (
+              <ExamplesCard examples={filterDoc.examples} />
+            )}
           </div>
         </div>
       </main>
     </div>
+  );
+}
+
+/** Collapsible examples card from wiki documentation */
+function ExamplesCard({ examples }: { examples: DocExample[] }) {
+  const [expanded, setExpanded] = useState<number | null>(null);
+  return (
+    <Card className="mt-4">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg">Examples</CardTitle>
+        <p className="text-xs text-muted-foreground">{examples.length} example{examples.length !== 1 ? 's' : ''} from wiki</p>
+      </CardHeader>
+      <CardContent className="space-y-1">
+        {examples.map((ex, i) => (
+          <div key={i} className="border rounded-md">
+            <button
+              type="button"
+              onClick={() => setExpanded(expanded === i ? null : i)}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-left hover:bg-muted/50"
+            >
+              {expanded === i ? <ChevronDown className="h-3.5 w-3.5 flex-shrink-0" /> : <ChevronRight className="h-3.5 w-3.5 flex-shrink-0" />}
+              <span className="font-medium">{ex.title}</span>
+            </button>
+            {expanded === i && (
+              <div className="px-3 pb-3 space-y-2 text-xs">
+                <p className="text-muted-foreground">{ex.description}</p>
+                {ex.input && (
+                  <div>
+                    <span className="font-medium text-muted-foreground">Input:</span>
+                    <pre className="mt-1 bg-muted p-2 rounded text-xs font-mono overflow-auto max-h-32 whitespace-pre-wrap">{ex.input}</pre>
+                  </div>
+                )}
+                {ex.output && (
+                  <div>
+                    <span className="font-medium text-muted-foreground">Output:</span>
+                    <pre className="mt-1 bg-muted p-2 rounded text-xs font-mono overflow-auto max-h-32 whitespace-pre-wrap">{ex.output}</pre>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </CardContent>
+    </Card>
   );
 }
 
