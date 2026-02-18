@@ -7,6 +7,7 @@ export type SerializationFormat = 'stringParameters' | 'yaml';
  * Serialize sparse config to JSON string.
  */
 export function toJson(config: Record<string, unknown>): string {
+  if (Object.keys(config).length === 0) return '';
   return JSON.stringify(config, null, 2);
 }
 

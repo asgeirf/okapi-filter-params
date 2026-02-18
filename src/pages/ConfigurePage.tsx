@@ -395,7 +395,7 @@ export function ConfigurePage() {
       case 'yaml': text = toYaml(sparseConfig); break;
       default: text = formatConfig(sparseConfig, 'fprm', serializationFormat); break;
     }
-    navigator.clipboard.writeText(text || '{}');
+    navigator.clipboard.writeText(text);
     setCopiedFormat(format);
     setTimeout(() => setCopiedFormat(null), 2000);
   }, [sparseConfig, serializationFormat]);
@@ -733,7 +733,9 @@ export function ConfigurePage() {
               </CardHeader>
               <CardContent>
                 <pre className="bg-muted p-4 rounded-md text-sm overflow-auto max-h-96 font-mono">
-                  {configOutputText || (serializationFormat === 'yaml' ? '# Using all default values' : '{}')}
+                  {configOutputText || (
+                    <span className="text-muted-foreground italic">Using all default values</span>
+                  )}
                 </pre>
               </CardContent>
             </Card>
