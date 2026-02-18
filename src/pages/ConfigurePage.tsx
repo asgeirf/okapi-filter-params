@@ -733,7 +733,7 @@ export function ConfigurePage() {
               </CardHeader>
               <CardContent>
                 <pre className="bg-muted p-4 rounded-md text-sm overflow-auto max-h-96 font-mono">
-                  {configOutputText || '{}'}
+                  {configOutputText || (serializationFormat === 'yaml' ? '# Using all default values' : '{}')}
                 </pre>
               </CardContent>
             </Card>
