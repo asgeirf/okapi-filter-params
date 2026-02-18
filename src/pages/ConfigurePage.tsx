@@ -839,10 +839,14 @@ function GroupedForm({
         props[field] = schema.properties[field];
       }
     }
-    return {
+    const sub: Record<string, unknown> = {
       type: 'object',
       properties: props as RJSFSchema['properties'],
     };
+    // Carry definitions so $ref can resolve
+    const defs = (schema as unknown as Record<string, unknown>)['definitions'];
+    if (defs) sub.definitions = defs;
+    return sub as RJSFSchema;
   };
 
   const renderGroupUiSchema = (fields: string[]): UiSchema => {
