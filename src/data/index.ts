@@ -3,7 +3,8 @@ import bridgeBundle from './bridge-bundle.json';
 // --- Types for composite schemas from okapi-bridge ---
 
 export interface SchemaProperty {
-  type: string | string[];
+  type?: string | string[];
+  $ref?: string;
   default?: unknown;
   description?: string;
   enum?: unknown[];
