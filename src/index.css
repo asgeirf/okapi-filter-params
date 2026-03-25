@@ -54,3 +54,13 @@ body {
   color: hsl(var(--foreground));
   font-family: system-ui, -apple-system, sans-serif;
 }
+
+/* Prism XML/markup syntax highlighting */
+.token.tag { color: #dc2626; }
+.token.attr-name { color: #b45309; }
+.token.attr-value { color: #15803d; }
+.token.punctuation { color: #6b7280; }
+.token.comment { color: #9ca3af; font-style: italic; }
+.token.prolog { color: #9ca3af; font-style: italic; }
+.token.doctype { color: #9ca3af; font-style: italic; }
+.token.cdata { color: #9ca3af; }

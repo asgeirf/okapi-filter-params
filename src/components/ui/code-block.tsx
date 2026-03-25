@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-type Language = 'fprm' | 'json' | 'yaml';
+type Language = 'fprm' | 'json' | 'yaml' | 'xml';
 
 interface CodeBlockProps {
   code: string;
@@ -12,7 +12,7 @@ interface CodeBlockProps {
 
 interface Token {
   text: string;
-  type: 'comment' | 'key' | 'string' | 'number' | 'boolean' | 'punctuation' | 'plain' | 'type-suffix';
+  type: 'comment' | 'key' | 'string' | 'number' | 'boolean' | 'punctuation' | 'plain' | 'type-suffix' | 'tag' | 'attr-name' | 'attr-value';
 }
 
 function tokenizeFprm(line: string): Token[] {
@@ -94,15 +94,36 @@ function tokenizeYaml(line: string): Token[] {
   return tokens;
 }
 
+export function tokenizeXml(line: string): Token[] {
+  const tokens: Token[] = [];
+  const regex = /(<!--[\s\S]*?-->)|(<\/?[\w:.-]+)|(\s+[\w:.-]+=)|("[^"]*")|(\?>|\/?>|>)/g;
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = regex.exec(line)) !== null) {
+    if (m.index > last) tokens.push({ text: line.slice(last, m.index), type: 'plain' });
+    if (m[1]) tokens.push({ text: m[1], type: 'comment' });
+    else if (m[2]) tokens.push({ text: m[2], type: 'tag' });
+    else if (m[3]) tokens.push({ text: m[3], type: 'attr-name' });
+    else if (m[4]) tokens.push({ text: m[4], type: 'attr-value' });
+    else if (m[5]) tokens.push({ text: m[5], type: 'tag' });
+    last = regex.lastIndex;
+  }
+  if (last < line.length) tokens.push({ text: line.slice(last), type: 'plain' });
+  return tokens;
+}
+
 function tokenizeLine(line: string, language: Language): Token[] {
   switch (language) {
     case 'fprm': return tokenizeFprm(line);
     case 'json': return tokenizeJson(line);
     case 'yaml': return tokenizeYaml(line);
+    case 'xml': return tokenizeXml(line);
   }
 }
 
-const tokenColors: Record<Token['type'], string> = {
+export { type Token };
+
+export const tokenColors: Record<Token['type'], string> = {
   comment: 'text-gray-400 italic',
   key: 'text-blue-600',
   string: 'text-green-700',
@@ -111,6 +132,9 @@ const tokenColors: Record<Token['type'], string> = {
   punctuation: 'text-gray-500',
   plain: '',
   'type-suffix': 'text-gray-400',
+  tag: 'text-red-600',
+  'attr-name': 'text-amber-700',
+  'attr-value': 'text-green-700',
 };
 
 /** Extract the property key from a line for dirty-matching */
@@ -125,6 +149,7 @@ function extractKey(line: string, language: Language): string | null {
     const m = line.match(/^\s*"([^"]+)"\s*:/);
     return m ? m[1] : null;
   }
+  if (language === 'xml') return null; // XML presets don't have per-key dirty tracking
   // yaml
   if (line.trimStart().startsWith('#') || line.trimStart().startsWith('-')) return null;
   const colon = line.indexOf(':');

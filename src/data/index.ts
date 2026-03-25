@@ -121,6 +121,8 @@ export interface FilterConfiguration {
   filterClass: string | null;
   /** Filter ID whose schema should be used for this config (e.g. "okf_commaseparatedvalues") */
   schemaRef: string | null;
+  /** Raw configuration content (XML ITS rules, YAML, or .fprm) when the preset is not schema-decomposable */
+  parametersRaw?: string;
 }
 
 export interface FilterData {

@@ -13,7 +13,7 @@ A web-based configuration editor for [Okapi Framework](https://okapiframework.or
 
 ## Schema Data
 
-Filter schemas are imported from [okapi-bridge](https://github.com/gokapi/okapi-bridge), which provides composite JSON Schemas (base + human-curated UI overrides) for each filter version.
+Filter schemas are imported from [okapi-bridge](https://github.com/neokapi/okapi-bridge), which provides composite JSON Schemas (base + human-curated UI overrides) for each filter version.
 
 To update schemas from okapi-bridge:
 

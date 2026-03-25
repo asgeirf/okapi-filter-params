@@ -1,7 +1,7 @@
 import yaml from 'js-yaml';
 
-export type OutputFormat = 'json' | 'yaml' | 'fprm';
-export type SerializationFormat = 'stringParameters' | 'yaml';
+export type OutputFormat = 'json' | 'yaml' | 'fprm' | 'xml';
+export type SerializationFormat = 'stringParameters' | 'yaml' | 'xml';
 
 /**
  * Serialize sparse config to JSON string.
@@ -84,8 +84,11 @@ export function formatConfig(
   switch (format) {
     case 'json': return toJson(config);
     case 'yaml': return toYaml(config);
+    case 'xml': return ''; // XML presets use parametersRaw directly
     case 'fprm':
-      return serializationFormat === 'yaml' ? toYaml(config) : toFprm(config);
+      if (serializationFormat === 'yaml') return toYaml(config);
+      if (serializationFormat === 'xml') return ''; // handled via parametersRaw
+      return toFprm(config);
   }
 }
 
@@ -99,8 +102,11 @@ export function formatExtension(
   switch (format) {
     case 'json': return '.json';
     case 'yaml': return '.yml';
+    case 'xml': return '.fprm';
     case 'fprm':
-      return serializationFormat === 'yaml' ? '.yml' : '.fprm';
+      if (serializationFormat === 'yaml') return '.yml';
+      if (serializationFormat === 'xml') return '.fprm';
+      return '.fprm';
   }
 }
 

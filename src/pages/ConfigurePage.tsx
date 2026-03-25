@@ -20,6 +20,7 @@ import { getFilterDoc, getParamDoc, type DocExample } from '@/data/filterDocs';
 import { ParamHelp } from '@/components/ui/param-help';
 import { ExternalLink, AlertTriangle } from 'lucide-react';
 import { CodeBlock } from '@/components/ui/code-block';
+import { XmlEditor } from '@/components/ui/xml-editor';
 import { 
   TagListWidget, 
   EnumRadioWidget, 
@@ -281,6 +282,28 @@ function generateUiSchema(schema: FilterSchema, editorHints: EditorHints | null)
 }
 
 
+const DEFAULT_ITS_RULES = `<?xml version="1.0" encoding="UTF-8"?>
+<its:rules version="1.0"
+ xmlns:its="http://www.w3.org/2005/11/its"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ xmlns:itsx="http://www.w3.org/2008/12/its-extensions"
+ xmlns:okp="okapi-framework:xmlfilter-options">
+<!-- See ITS specification at: http://www.w3.org/TR/its/ -->
+</its:rules>`;
+
+function toBase64(str: string): string {
+  const bytes = new TextEncoder().encode(str);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  return window.btoa(binary);
+}
+
+function fromBase64(b64: string): string {
+  const binary = window.atob(b64);
+  const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
 export function ConfigurePage() {
   const { filterId } = useParams<{ filterId: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -297,6 +320,15 @@ export function ConfigurePage() {
     return viewParam === 'form' ? 'form' : 'editor';
   });
   const [isPending, startTransition] = useTransition();
+
+  // Detect ITS-based filters: any configuration has XML parametersRaw
+  const isItsFilter = useMemo(() =>
+    configurations.some(c => c.parametersRaw?.trimStart().startsWith('<')),
+    [configurations]
+  );
+
+  // Editable ITS rules XML for ITS-based filters (okf_xml, okf_html5)
+  const [itsRulesXml, setItsRulesXml] = useState<string>(DEFAULT_ITS_RULES);
 
   // Resolve the active filter data based on selected configuration's schemaRef
   const activeFilter = useMemo(() => {
@@ -323,7 +355,7 @@ export function ConfigurePage() {
     const configParam = searchParams.get('config');
     if (configParam) {
       try {
-        const decoded = JSON.parse(atob(configParam));
+        const decoded = JSON.parse(fromBase64(configParam));
         return { ...defaults, ...decoded };
       } catch {
         // Invalid config param, use defaults
@@ -340,7 +372,13 @@ export function ConfigurePage() {
     const presetParam = searchParams.get('preset');
     const configParam = searchParams.get('config');
     const viewParam = searchParams.get('view');
+    const itsParam = searchParams.get('its');
     setEditorMode(viewParam === 'form' ? 'form' : 'editor');
+
+    // Restore ITS rules from URL if available (takes priority over preset)
+    if (itsParam) {
+      try { setItsRulesXml(fromBase64(itsParam)); } catch { /* ignore */ }
+    }
 
     // Restore preset from URL if available
     if (presetParam && configurations.length > 0) {
@@ -363,19 +401,23 @@ export function ConfigurePage() {
         // Apply any additional config overrides on top of preset
         if (configParam) {
           try {
-            const decoded = JSON.parse(atob(configParam));
+            const decoded = JSON.parse(fromBase64(configParam));
             Object.assign(merged, decoded);
           } catch { /* ignore */ }
         }
         setPresetBaseline({ ...targetDefaults, ...(preset.parameters || {}) });
         setFormData(merged);
+        // Load ITS rules from preset (unless URL had custom ITS rules)
+        if (!itsParam && preset.parametersRaw?.trimStart().startsWith('<')) {
+          setItsRulesXml(preset.parametersRaw);
+        }
         return;
       }
     }
 
     if (configParam) {
       try {
-        const decoded = JSON.parse(atob(configParam));
+        const decoded = JSON.parse(fromBase64(configParam));
         const baseDefaults = filter ? getDefaults(filter.schema) : {};
         setFormData({ ...baseDefaults, ...decoded });
       } catch {
@@ -394,11 +436,16 @@ export function ConfigurePage() {
   );
 
   // Determine the native serialization format from the schema's x-filter metadata
+  // ITS-based filters always use XML format for their .fprm output
   const activeSchema = (activeFilter ?? filter)?.schema;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const serializationFormat: SerializationFormat = 
-    (activeSchema as any)?.['x-filter']?.serializationFormat === 'yaml'
-      ? 'yaml' : 'stringParameters';
+  const serializationFormat: SerializationFormat = useMemo(() => {
+    if (isItsFilter) return 'xml';
+    const fmt = (activeSchema as any)?.['x-filter']?.serializationFormat;
+    if (fmt === 'yaml') return 'yaml';
+    return 'stringParameters';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }, [isItsFilter, activeSchema]);
 
   // Keys the user has changed relative to the effective baseline (preset or schema defaults)
   const dirtyKeys = useMemo(() => {
@@ -412,22 +459,27 @@ export function ConfigurePage() {
   }, [sparseConfig, formData, defaults]);
 
   // Always show native .fprm format in the output panel
-  const configOutputText = useMemo(() => 
-    formatConfig(sparseConfig, 'fprm', serializationFormat), 
-    [sparseConfig, serializationFormat]
-  );
+  // For ITS-based filters, show the editable XML content
+  const configOutputText = useMemo(() => {
+    if (isItsFilter) return itsRulesXml;
+    return formatConfig(sparseConfig, 'fprm', serializationFormat);
+  }, [sparseConfig, serializationFormat, isItsFilter, itsRulesXml]);
 
   const handleCopyAs = useCallback((format: string) => {
     let text: string;
-    switch (format) {
-      case 'json': text = toJson(sparseConfig); break;
-      case 'yaml': text = toYaml(sparseConfig); break;
-      default: text = formatConfig(sparseConfig, 'fprm', serializationFormat); break;
+    if (isItsFilter) {
+      text = itsRulesXml;
+    } else {
+      switch (format) {
+        case 'json': text = toJson(sparseConfig); break;
+        case 'yaml': text = toYaml(sparseConfig); break;
+        default: text = formatConfig(sparseConfig, 'fprm', serializationFormat); break;
+      }
     }
     navigator.clipboard.writeText(text);
     setCopiedFormat(format);
     setTimeout(() => setCopiedFormat(null), 2000);
-  }, [sparseConfig, serializationFormat]);
+  }, [sparseConfig, serializationFormat, isItsFilter, itsRulesXml]);
 
   const handleCopyLink = useCallback(() => {
     const hasConfig = Object.keys(sparseConfig).length > 0;
@@ -436,11 +488,20 @@ export function ConfigurePage() {
     params.set('okapi', okapiVersion);
     if (selectedConfigId) params.set('preset', selectedConfigId);
     if (editorMode === 'form') params.set('view', 'form');
-    if (hasConfig) params.set('config', btoa(JSON.stringify(sparseConfig)));
+    if (hasConfig) params.set('config', toBase64(JSON.stringify(sparseConfig)));
+    // Include custom ITS rules (when not using a preset, or when rules differ from preset)
+    if (isItsFilter && itsRulesXml !== DEFAULT_ITS_RULES) {
+      const presetXml = selectedConfigId
+        ? configurations.find(c => c.configId === selectedConfigId)?.parametersRaw
+        : undefined;
+      if (itsRulesXml !== presetXml) {
+        params.set('its', toBase64(itsRulesXml));
+      }
+    }
     navigator.clipboard.writeText(`${base}?${params.toString()}`);
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2000);
-  }, [sparseConfig, okapiVersion, selectedConfigId, editorMode]);
+  }, [sparseConfig, okapiVersion, selectedConfigId, editorMode, isItsFilter, itsRulesXml, configurations]);
 
   const handleSetEditorMode = useCallback((mode: 'form' | 'editor') => {
     startTransition(() => {
@@ -461,8 +522,23 @@ export function ConfigurePage() {
     setPresetBaseline(null);
     setSelectedConfigId(null);
     setFormData(schemaDefaults);
+    if (isItsFilter) setItsRulesXml(DEFAULT_ITS_RULES);
     setSearchParams({});
-  }, [schemaDefaults, setSearchParams]);
+  }, [schemaDefaults, setSearchParams, isItsFilter]);
+
+  const handleItsRulesChange = useCallback((xml: string) => {
+    setItsRulesXml(xml);
+    if (selectedConfigId) {
+      setSelectedConfigId(null);
+      setPresetBaseline(null);
+      setFormData(schemaDefaults);
+      setSearchParams(prev => {
+        const next = new URLSearchParams(prev);
+        next.delete('preset');
+        return next;
+      });
+    }
+  }, [selectedConfigId, schemaDefaults, setSearchParams]);
 
   const handleLoadPreset = useCallback((configId: string) => {
     startTransition(() => {
@@ -489,6 +565,12 @@ export function ConfigurePage() {
       // Preset values become the new baseline — nothing shows as modified
       setPresetBaseline(merged);
       setFormData(merged);
+      // Load ITS rules XML from preset if available
+      if (preset.parametersRaw?.trimStart().startsWith('<')) {
+        setItsRulesXml(preset.parametersRaw);
+      } else if (isItsFilter) {
+        setItsRulesXml(DEFAULT_ITS_RULES);
+      }
       // Persist preset in URL
       setSearchParams(prev => {
         const next = new URLSearchParams(prev);
@@ -497,7 +579,7 @@ export function ConfigurePage() {
         return next;
       });
     });
-  }, [configurations, schemaDefaults, filterId, okapiVersion, setSearchParams]);
+  }, [configurations, schemaDefaults, filterId, okapiVersion, setSearchParams, isItsFilter]);
 
   const handleResetField = useCallback((fieldName: string) => {
     setFormData(prev => ({
@@ -567,8 +649,8 @@ export function ConfigurePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <header className="border-b bg-background/80 backdrop-blur-md sticky top-0 z-30">
+        <div className="container mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-4">
             <Link to="/">
               <Button variant="ghost" size="sm">
@@ -588,7 +670,7 @@ export function ConfigurePage() {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-shrink-0">
             <OkapiVersionSelector />
             <Button variant="outline" size="sm" onClick={handleCopyLink}>
               {linkCopied ? (
@@ -677,8 +759,31 @@ export function ConfigurePage() {
               </Card>
             )}
 
-            {/* Editor mode toggle */}
-            {(() => {
+            {/* ITS Rules XML Editor */}
+            {isItsFilter && (
+              <Card>
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg">ITS Rules</CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        W3C Internationalization Tag Set rules that control extraction
+                      </p>
+                    </div>
+                    <span className="text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">XML / ITS</span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <XmlEditor
+                    value={itsRulesXml}
+                    onChange={handleItsRulesChange}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Editor mode toggle + schema form (hidden for ITS filters — XML editor is the primary UI) */}
+            {!isItsFilter && (() => {
               // Determine the effective filter ID for editor lookup
               const effectiveFilterId = selectedConfigId
                 ? (configurations.find(c => c.configId === selectedConfigId)?.schemaRef || filterId || '')
@@ -772,17 +877,20 @@ export function ConfigurePage() {
           </div>
 
           {/* Output Panel */}
-          <div className="lg:sticky lg:top-24 lg:self-start">
+          <div className="lg:sticky lg:top-24 lg:self-start lg:z-0">
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">Configuration Output</CardTitle>
                   <div className="flex gap-1">
-                    {[
-                      { key: 'fprm', label: serializationFormat === 'yaml' ? '.fprm' : '.fprm' },
-                      { key: 'json', label: 'JSON' },
-                      { key: 'yaml', label: 'YAML' },
-                    ].map(fmt => (
+                    {(serializationFormat === 'xml'
+                      ? [{ key: 'xml', label: 'Copy XML' }]
+                      : [
+                          { key: 'fprm', label: '.fprm' },
+                          { key: 'json', label: 'JSON' },
+                          { key: 'yaml', label: 'YAML' },
+                        ]
+                    ).map(fmt => (
                       <Button
                         key={fmt.key}
                         variant="outline"
@@ -812,13 +920,16 @@ export function ConfigurePage() {
                   {serializationFormat === 'yaml' && (
                     <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">YAML format</span>
                   )}
+                  {serializationFormat === 'xml' && (
+                    <span className="ml-2 text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded">XML / ITS rules</span>
+                  )}
                 </p>
               </CardHeader>
               <CardContent>
                 <CodeBlock
                   code={configOutputText}
-                  language={serializationFormat === 'yaml' ? 'yaml' : 'fprm'}
-                  dirtyKeys={dirtyKeys}
+                  language={serializationFormat === 'xml' ? 'xml' : serializationFormat === 'yaml' ? 'yaml' : 'fprm'}
+                  dirtyKeys={serializationFormat === 'xml' ? undefined : dirtyKeys}
                 />
               </CardContent>
             </Card>

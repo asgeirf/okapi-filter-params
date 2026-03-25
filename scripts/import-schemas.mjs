@@ -4,7 +4,7 @@
  * into a single bundled JSON file for the UI.
  *
  * Usage: node scripts/import-schemas.mjs [bridge-path]
- *   bridge-path defaults to ../gokapi/okapi-bridge (relative to repo root)
+ *   bridge-path defaults to ../neokapi/okapi-bridge (relative to repo root)
  */
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'fs';
 import { join, resolve, dirname } from 'path';
@@ -15,13 +15,13 @@ const repoRoot = resolve(__dirname, '..');
 
 const bridgePath = process.argv[2]
   ? resolve(process.argv[2])
-  : resolve(repoRoot, '../../gokapi/okapi-bridge');
+  : resolve(repoRoot, '../../neokapi/okapi-bridge');
 
 const compositeDir = join(bridgePath, 'schemas/composite');
-const versionsFile = join(bridgePath, 'schema-versions.json');
+const versionsFile = join(bridgePath, 'schemas/versions.json');
 
 if (!existsSync(versionsFile)) {
-  console.error(`schema-versions.json not found at ${versionsFile}`);
+  console.error(`schemas/versions.json not found at ${versionsFile}`);
   process.exit(1);
 }
 if (!existsSync(compositeDir)) {
@@ -101,15 +101,19 @@ for (const okapiVersion of sortedOkapiVersions) {
     const versionSchema = JSON.parse(readFileSync(join(versionSchemasDir, file), 'utf-8'));
     const configs = versionSchema?.['x-filter']?.configurations;
     if (configs && configs.length > 0) {
-      const relevant = configs.map(c => ({
-        configId: c.configId,
-        name: c.name,
-        description: c.description || '',
-        isDefault: c.isDefault || false,
-        parameters: c.parameters || null,
-        filterClass: c.filterClass || null,
-        schemaRef: c.schemaRef ? c.schemaRef.replace('.schema.json', '') : null,
-      }));
+      const relevant = configs.map(c => {
+        const entry = {
+          configId: c.configId,
+          name: c.name,
+          description: c.description || '',
+          isDefault: c.isDefault || false,
+          parameters: c.parameters || null,
+          filterClass: c.filterClass || null,
+          schemaRef: c.schemaRef ? c.schemaRef.replace('.schema.json', '') : null,
+        };
+        if (c.parametersRaw) entry.parametersRaw = c.parametersRaw;
+        return entry;
+      });
       versionConfigs[filterId] = relevant;
       totalConfigs += relevant.length;
     }
